@@ -21,7 +21,9 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(rgb_controller rgb_controller.c )
+add_executable(rgb_controller
+  src/rgb_controller.c
+)
 
 pico_set_program_name(rgb_controller "rgb_controller")
 pico_set_program_version(rgb_controller "0.1")
@@ -31,7 +33,8 @@ pico_enable_stdio_usb(rgb_controller 0)
 
 # Add the standard library to the build
 target_link_libraries(rgb_controller
-        pico_stdlib)
+  pico_stdlib
+)
 
 # Add the standard include files to the build
 target_include_directories(rgb_controller PRIVATE
