@@ -22,6 +22,8 @@ pico_set_program_version(rgb_controller "0.1")
 
 target_sources(rgb_controller PRIVATE
   src/main.c
+  src/usb_descriptors.c
+  src/usb_hid.c
 )
 
 target_include_directories(rgb_controller PRIVATE
@@ -33,6 +35,7 @@ pico_enable_stdio_uart(rgb_controller 1)
 # Add the standard library to the build
 target_link_libraries(rgb_controller
   pico_stdlib
+  hardware_flash
   tinyusb_device
 )
 
