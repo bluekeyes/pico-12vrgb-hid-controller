@@ -84,6 +84,9 @@ uint8_t const * tud_descriptor_device_cb(void)
 //               e.g. lamp counts / multi-update limited to actual channels
 
 uint8_t const desc_hid_report[] = {
+  // ------------------------------------
+  // Lighting and Illumination: LampArray
+  // ------------------------------------
   HID_USAGE_PAGE    (HID_USAGE_PAGE_LIGHTING),
   HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY),
   HID_COLLECTION    (HID_COLLECTION_APPLICATION),
@@ -298,13 +301,41 @@ uint8_t const desc_hid_report[] = {
       HID_LOGICAL_MAX   (1),
       HID_REPORT_SIZE   (1),
       HID_REPORT_COUNT  (1),
+      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // Padding
       HID_REPORT_SIZE   (7),
       HID_OUTPUT        (HID_CONSTANT),
     HID_COLLECTION_END,
 
-  HID_COLLECTION_END,
+  HID_COLLECTION_END, // Lighting and Illumination: LampArray
+
+  // -------------------------
+  // Vendor 12VRGB: Controller
+  // -------------------------
+  HID_USAGE_PAGE_N  (HID_USAGE_PAGE_VENDOR_12VRGB, 2),
+  HID_USAGE         (HID_USAGE_VENDOR_12VRGB_CONTROLLER),
+  HID_COLLECTION    (HID_COLLECTION_APPLICATION),
+
+    // -------------
+    // BootSelReport
+    // -------------
+    HID_REPORT_ID   (HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL)
+    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT),
+    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
+      // BootSelRestart
+      HID_USAGE         (HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART),
+      HID_LOGICAL_MAX   (1),
+      HID_REPORT_SIZE   (1),
+      HID_REPORT_COUNT  (1),
+      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_RELATIVE | HID_PREFERRED_STATE),
+
+      // Padding
+      HID_REPORT_SIZE   (7),
+      HID_OUTPUT        (HID_CONSTANT),
+    HID_COLLECTION_END,
+
+  HID_COLLECTION_END, // Vendor 12VRGB: Controller
 };
 
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)

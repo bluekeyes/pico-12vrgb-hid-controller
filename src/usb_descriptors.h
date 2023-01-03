@@ -2,7 +2,8 @@
 #define USB_DESCRIPTORS_H_
 
 enum {
-    HID_USAGE_PAGE_LIGHTING = 0x59,
+    HID_USAGE_PAGE_LIGHTING         = 0x59,
+    HID_USAGE_PAGE_VENDOR_12VRGB    = 0xFF00,
 };
 
 enum {
@@ -42,13 +43,27 @@ enum {
 };
 
 enum {
+    HID_USAGE_VENDOR_12VRGB_CONTROLLER          = 0x01,
+    HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT      = 0x02,
+    HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART     = 0x03,
+};
+
+enum {
+    // Lighting and Illumination Reports
     HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES = 1,
     HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST,
     HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE,
     HID_REPORT_ID_LAMP_MULTI_UPDATE,
     HID_REPORT_ID_LAMP_RANGE_UPDATE,
     HID_REPORT_ID_LAMP_ARRAY_CONTROL,
+
+    // Vendor Reports
+    HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL,
 };
+
+// --------------------
+// LampArrayKind Values
+// --------------------
 
 enum {
     LAMP_ARRAY_KIND_KEYBOARD         = 0x01,
@@ -63,12 +78,20 @@ enum {
     LAMP_ARRAY_KIND_ART              = 0x0A,
 };
 
+// -----------------
+// LampPurpose Flags
+// -----------------
+
 #define LAMP_PURPOSE_CONTROL        0x01
 #define LAMP_PURPOSE_ACCENT         0x02
 #define LAMP_PURPOSE_BRANDING       0x04
 #define LAMP_PURPOSE_STATUS         0x08
 #define LAMP_PURPOSE_ILLUMINATION   0x10
 #define LAMP_PURPOSE_PRESENTATION   0x20
+
+// ----------------
+// LampUpdate Flags
+// ----------------
 
 #define LAMP_UPDATE_COMPLETE        0x01
 
