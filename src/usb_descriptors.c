@@ -379,63 +379,69 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 #define MAX_DESCRIPTOR_LENGTH   31
 #define FLASH_ID_BYTES          8
 
-// TODO(bkeyes): add init function, load serial once at startup
-
 // static string descriptors
-char const* string_desc_arr[] = {
-  (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-  "BlueKeyes",                   // 1: Manufacturer
-  "12VRGB HID Controller",       // 2: Product
-  "",                            // 3: Serial Number (placeholder, dynamic)
+static char const *string_desc_arr[] = {
+    (const char[]) { 0x09, 0x04 },  // 0: English (0x0409)
+    "BlueKeyes",                    // 1: Manufacturer
+    "12VRGB HID Controller",        // 2: Product
+    "",                             // 3: Serial Number (placeholder)
 };
 
-// alphabet for converting chip ID to hex-encoded serial value
-char const* hex_alphabet = "0123456789abcdef";
+static inline char hex_char(uint8_t v)
+{
+    return v < 0xA ? '0' + v : 'A' - 0xA + v;
+}
 
-// static buffer for returning string descriptors
+static uint8_t get_serial_number_string(uint16_t *str)
+{
+    uint8_t id[FLASH_ID_BYTES];
+    flash_get_unique_id(id);
+
+    for (uint8_t i = 0; i < FLASH_ID_BYTES; i++) {
+        str[2*i] = hex_char(id[i] & 0x0F);
+        str[2*i+1] = hex_char((id[i] >> 4) & 0x0F);
+    }
+
+    return 2 * FLASH_ID_BYTES;
+}
+
+// buffer for returning string descriptors
 static uint16_t _desc_str[MAX_DESCRIPTOR_LENGTH + 1];
 
-uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
+uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
 {
-  uint8_t chr_count;
-  const char *str;
-  uint8_t id[FLASH_ID_BYTES];
+    uint8_t chr_count;
+    const char *str;
 
-  switch (index) {
-    case 0:
-      memcpy(&_desc_str[1], string_desc_arr[0], 2);
-      chr_count = 1;
-      break;
+    if (index >= sizeof(string_desc_arr)/sizeof(string_desc_arr[0])) {
+        return NULL;
+    }
+    switch (index) {
+        case 0:
+            memcpy(&_desc_str[1], string_desc_arr[0], 2);
+            chr_count = 1;
+            break;
 
-    case 1:
-    case 2:
-      str = string_desc_arr[index];
-      chr_count = strlen(str);
-      if (chr_count > MAX_DESCRIPTOR_LENGTH) {
-        chr_count = MAX_DESCRIPTOR_LENGTH;
-      }
+        case 3:
+            chr_count = get_serial_number_string(&_desc_str[1]);
+            break;
 
-      for (uint8_t i = 0; i < chr_count; i++) {
-        _desc_str[1+i] = str[i];
-      }
-      break;
+        default:
+            str = string_desc_arr[index];
 
-    case 3:
-      flash_get_unique_id(id);
+            chr_count = strlen(str);
+            if (chr_count > MAX_DESCRIPTOR_LENGTH) {
+                chr_count = MAX_DESCRIPTOR_LENGTH;
+            }
 
-      for (uint8_t i = 0; i < FLASH_ID_BYTES; i++) {
-        _desc_str[1+2*i] = hex_alphabet[id[i] & 0xF];
-        _desc_str[1+2*i+1] = hex_alphabet[(id[i] >> 4) & 0xF];
-      }
-      chr_count = 2 * FLASH_ID_BYTES;
-      break;
+            for (uint8_t i = 0; i < chr_count; i++) {
+                _desc_str[1+i] = str[i];
+            }
+            break;
+    }
 
-    default:
-      return NULL;
-  }
+    // first byte is length (including header), second byte is string type
+    _desc_str[0] = (TUSB_DESC_STRING << 8) | (2*chr_count + 2);
 
-  // first byte is length (including header), second byte is string type
-  _desc_str[0] = (TUSB_DESC_STRING << 8) | (2*chr_count + 2);
-
-  return _desc_str;
+    return _desc_str;
 }
