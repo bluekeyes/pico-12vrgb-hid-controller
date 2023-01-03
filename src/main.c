@@ -1,7 +1,8 @@
 #include "pico/stdlib.h"
 #include "tusb.h"
 
-int main() {
+int main()
+{
     tusb_init();
 
     while (true) {
