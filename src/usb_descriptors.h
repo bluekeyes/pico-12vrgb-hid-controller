@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#include "tusb.h"
+
+#include "config.h"
+
 #define HID_REPEAT_1(...)   __VA_ARGS__
 #define HID_REPEAT_2(...)   __VA_ARGS__ __VA_ARGS__
 #define HID_REPEAT_3(...)   __VA_ARGS__ __VA_ARGS__ __VA_ARGS__
@@ -96,6 +100,42 @@ enum {
     HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL,
 };
 
+// --------------
+// Report Structs
+// --------------
+//
+// NOTE: these must exactly match the data layout given by the report
+// descriptors and all multi-byte values must be little-endian. This works out
+// nicely on the RP2040, but could be a problem on other platforms.
+
+typedef struct TU_ATTR_PACKED {
+    uint16_t lamp_count;
+    int32_t bounding_box_width;
+    int32_t bounding_box_height;
+    int32_t bounding_box_depth;
+    int32_t min_update_interval;
+    uint8_t lamp_kind;
+} lamp_array_attributes_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t lamp_id;
+} lamp_attributes_request_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t lamp_id;
+    int32_t position_x;
+    int32_t position_y;
+    int32_t position_z;
+    uint16_t lamp_purpose;
+    int32_t update_latency;
+    uint8_t red_level_count;
+    uint8_t green_level_count;
+    uint8_t blue_level_count;
+    uint8_t intensity_level_count;
+    uint8_t is_programmable;
+    uint16_t input_binding;
+} lamp_attributes_response_report_t;
+
 // --------------------
 // LampArrayKind Values
 // --------------------
@@ -112,17 +152,6 @@ enum {
     LAMP_ARRAY_KIND_FURNITURE        = 0x09,
     LAMP_ARRAY_KIND_ART              = 0x0A,
 };
-
-// -----------------
-// LampPurpose Flags
-// -----------------
-
-#define LAMP_PURPOSE_CONTROL        0x01
-#define LAMP_PURPOSE_ACCENT         0x02
-#define LAMP_PURPOSE_BRANDING       0x04
-#define LAMP_PURPOSE_STATUS         0x08
-#define LAMP_PURPOSE_ILLUMINATION   0x10
-#define LAMP_PURPOSE_PRESENTATION   0x20
 
 // ----------------
 // LampUpdate Flags

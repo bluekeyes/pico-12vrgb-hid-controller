@@ -22,6 +22,7 @@
 #define CFG_TUD_MIDI            0
 #define CFG_TUD_VENDOR          0
 
-#define CFG_TUD_HID_EP_BUFSIZE  16
+// Must be at least one byte larger than the largest report (see usb_descriptors.h)
+#define CFG_TUD_HID_EP_BUFSIZE  48
 
 #endif /* _TUSB_CONFIG_H_ */
