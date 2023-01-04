@@ -5,6 +5,8 @@
 
 #include "tusb.h"
 
+#include "config.h"
+
 #define HID_REPEAT_1(...)   __VA_ARGS__
 #define HID_REPEAT_2(...)   __VA_ARGS__ __VA_ARGS__
 #define HID_REPEAT_3(...)   __VA_ARGS__ __VA_ARGS__ __VA_ARGS__
@@ -67,13 +69,15 @@ enum {
 // descriptors and all multi-byte values must be little-endian. This works out
 // nicely on the RP2040, but could be a problem on other platforms.
 
+// TODO(bkeyes): extract report definitions to macros, co-locate here or in a new header
+
 typedef struct TU_ATTR_PACKED {
     uint16_t lamp_count;
-    int32_t bounding_box_width;
-    int32_t bounding_box_height;
-    int32_t bounding_box_depth;
-    int32_t min_update_interval;
-    uint8_t lamp_kind;
+    int32_t  bounding_box_width;
+    int32_t  bounding_box_height;
+    int32_t  bounding_box_depth;
+    int32_t  min_update_interval;
+    uint8_t  lamp_kind;
 } lamp_array_attributes_report_t;
 
 typedef struct TU_ATTR_PACKED {
@@ -81,18 +85,40 @@ typedef struct TU_ATTR_PACKED {
 } lamp_attributes_request_report_t;
 
 typedef struct TU_ATTR_PACKED {
-    uint8_t lamp_id;
-    int32_t position_x;
-    int32_t position_y;
-    int32_t position_z;
+    uint8_t  lamp_id;
+    int32_t  position_x;
+    int32_t  position_y;
+    int32_t  position_z;
     uint16_t lamp_purpose;
-    int32_t update_latency;
-    uint8_t red_level_count;
-    uint8_t green_level_count;
-    uint8_t blue_level_count;
-    uint8_t intensity_level_count;
-    uint8_t is_programmable;
+    int32_t  update_latency;
+    uint8_t  red_level_count;
+    uint8_t  green_level_count;
+    uint8_t  blue_level_count;
+    uint8_t  intensity_level_count;
+    uint8_t  is_programmable;
     uint16_t input_binding;
 } lamp_attributes_response_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t  lamp_count;
+    uint8_t  lamp_ids[CFG_RGB_MULTI_UPDATE_SIZE];
+    uint8_t  rgbi_tuples[4 * CFG_RGB_MULTI_UPDATE_SIZE];
+    uint16_t update_flags;
+} lamp_multi_update_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t  lamp_id_start;
+    uint8_t  lamp_id_end;
+    uint8_t  rgbi_tuple[4];
+    uint16_t update_flags;
+} lamp_range_update_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t autonomous_mode;
+} lamp_array_control_report_t;
+
+typedef struct TU_ATTR_PACKED {
+    uint8_t bootsel_restart;
+} vendor_12vrgb_bootsel_report_t;
 
 #endif /* USB_DESCRIPTORS_H_ */

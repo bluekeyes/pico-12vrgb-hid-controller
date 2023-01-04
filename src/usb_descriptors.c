@@ -311,8 +311,8 @@ static uint16_t _desc_str[MAX_DESCRIPTOR_LENGTH + 1];
 
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
 {
-    uint8_t chr_count;
-    const char *str;
+    uint8_t chr_count = 0;
+    const char *str = NULL;
 
     if (index >= sizeof(string_desc_arr)/sizeof(string_desc_arr[0])) {
         return NULL;

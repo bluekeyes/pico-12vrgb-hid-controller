@@ -35,8 +35,9 @@ pico_enable_stdio_uart(rgb_controller 1)
 
 # Add the standard library to the build
 target_link_libraries(rgb_controller
-  pico_stdlib
   hardware_flash
+  pico_bootrom
+  pico_stdlib
   tinyusb_device
 )
 
