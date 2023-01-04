@@ -1,28 +1,3 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2019 Ha Thach (tinyusb.org)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
 #include <stdint.h>
 #include <string.h>
 
@@ -33,19 +8,9 @@
 #include "usb_descriptors.h"
 
 // TODO(bkeyes): set appropriate VID / PID
-
-/* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
- * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
- *
- * Auto ProductID layout's Bitmap:
- *   [MSB]         HID | MSC | CDC          [LSB]
- */
-#define _PID_MAP(itf, n)  ( (CFG_TUD_##itf) << (n) )
-#define USB_PID           (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
-                           _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) )
-
 #define USB_VID   0xCafe
-#define USB_BCD   0x0200
+#define USB_PID   0x4100
+#define USB_BCD   0x0200 // USB 2.0
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -61,7 +26,7 @@ tusb_desc_device_t const desc_device = {
 
     .idVendor           = USB_VID,
     .idProduct          = USB_PID,
-    .bcdDevice          = 0x0100, // TODO(bkeyes): device revision (in binary-coded decimal?)
+    .bcdDevice          = CFG_RGB_DEVICE_VERSION,
 
     .iManufacturer      = 0x01,
     .iProduct           = 0x02,
@@ -70,7 +35,7 @@ tusb_desc_device_t const desc_device = {
     .bNumConfigurations = 0x01
 };
 
-uint8_t const * tud_descriptor_device_cb(void)
+uint8_t const *tud_descriptor_device_cb(void)
 {
   return (uint8_t const *) &desc_device;
 }
@@ -78,10 +43,6 @@ uint8_t const * tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 // HID Report Descriptor
 //--------------------------------------------------------------------+
-
-// TODO(bkeyes): should logical min/max use the possible values from the field size or the actual hardware configuration?
-// TODO(bkeyes): should fields be sized based on "natural" (i.e. byte) boundaries or by actual hardware configuration?
-//               e.g. lamp counts / multi-update limited to actual channels
 
 uint8_t const desc_hid_report[] = {
   // ------------------------------------
@@ -91,6 +52,9 @@ uint8_t const desc_hid_report[] = {
   HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY),
   HID_COLLECTION    (HID_COLLECTION_APPLICATION),
 
+    // All fields in reports are non-negative
+    HID_LOGICAL_MIN (0),
+
     // -------------------------
     // LampArrayAttributesReport
     // -------------------------
@@ -99,11 +63,7 @@ uint8_t const desc_hid_report[] = {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL),
       // LampCount
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_COUNT),
-      HID_LOGICAL_MIN   (0),
-      HID_LOGICAL_MAX   (CFG_RGB_CHANNELS),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT16   (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
 
       // BoundingBoxWidthInMicrometers, BoundingBoxHeightInMicrometers, BoundingBoxDepthInMicrometers
       // MinUpdateIntervalInMicroseconds
@@ -111,17 +71,11 @@ uint8_t const desc_hid_report[] = {
       HID_USAGE         (HID_USAGE_LIGHTING_BOUNDING_BOX_HEIGHT_IN_MICROMETERS),
       HID_USAGE         (HID_USAGE_LIGHTING_BOUNDING_BOX_DEPTH_IN_MICROMETERS),
       HID_USAGE         (HID_USAGE_LIGHTING_MIN_UPDATE_INTERVAL_IN_MICROSECONDS),
-      HID_LOGICAL_MAX_N (INT32_MAX, 3),
-      HID_REPORT_SIZE   (32),
-      HID_REPORT_COUNT  (4),
-      HID_INPUT         (HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_INT32    (INPUT, 4, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
 
       // LampArrayKind
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY_KIND),
-      HID_LOGICAL_MAX   (0xFF),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
     HID_COLLECTION_END,
 
     // ---------------------------
@@ -132,10 +86,7 @@ uint8_t const desc_hid_report[] = {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL),
       // LampId
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_LOGICAL_MAX   (CFG_RGB_CHANNELS - 1),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (OUTPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
     HID_COLLECTION_END,
 
     // ----------------------------
@@ -146,63 +97,43 @@ uint8_t const desc_hid_report[] = {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL),
       // LampId
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_LOGICAL_MAX   (CFG_RGB_CHANNELS - 1),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
 
       // PositionXInMicrometers, PositionYInMicrometers, PositionZInMicrometers
       HID_USAGE         (HID_USAGE_LIGHTING_POSITION_X_IN_MICROMETERS),
       HID_USAGE         (HID_USAGE_LIGHTING_POSITION_Y_IN_MICROMETERS),
       HID_USAGE         (HID_USAGE_LIGHTING_POSITION_Z_IN_MICROMETERS),
-      HID_LOGICAL_MAX_N (INT32_MAX, 3),
-      HID_REPORT_SIZE   (32),
-      HID_REPORT_COUNT  (3),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_INT32    (INPUT, 3, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // LampPurposes
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_PURPOSES),
-      HID_LOGICAL_MAX_N (0xFFFF, 2),
-      HID_REPORT_SIZE   (16),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT16   (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // UpdateLatencyInMicroseconds
       HID_USAGE         (HID_USAGE_LIGHTING_UPDATE_LATENCY_IN_MICROSECONDS),
-      HID_LOGICAL_MAX_N (INT32_MAX, 3),
-      HID_REPORT_SIZE   (32),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_INT32    (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
-      // RedLevelCount, GreenLevelCount, BlueLevelCount
+      // RedLevelCount, GreenLevelCount, BlueLevelCount, IntensityLevelCount
       HID_USAGE         (HID_USAGE_LIGHTING_RED_LEVEL_COUNT),
       HID_USAGE         (HID_USAGE_LIGHTING_GREEN_LEVEL_COUNT),
       HID_USAGE         (HID_USAGE_LIGHTING_BLUE_LEVEL_COUNT),
-      HID_LOGICAL_MAX   (CFG_RGB_LEVELS_PER_CHANNEL),
-      HID_REPORT_SIZE   (CFG_RGB_BITS_PER_CHANNEL),
-      HID_REPORT_COUNT  (3),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // IntensityLevelCount
       HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_LEVEL_COUNT),
-      HID_LOGICAL_MAX   (CFG_RGB_INTENSITY_LEVELS),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (INPUT, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // IsProgrammable
       HID_USAGE         (HID_USAGE_LIGHTING_IS_PROGRAMMABLE),
       HID_LOGICAL_MAX   (1),
-      HID_REPORT_SIZE   (8),
+      HID_REPORT_SIZE   (1),
       HID_REPORT_COUNT  (1),
       HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
+      // Padding
+      HID_REPORT_SIZE   (7),
+      HID_INPUT         (HID_CONSTANT),
+
       // InputBinding
       HID_USAGE         (HID_USAGE_LIGHTING_INPUT_BINDING),
-      HID_LOGICAL_MAX_N (0xFFFF, 2),
-      HID_REPORT_SIZE   (16),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT16   (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
     HID_COLLECTION_END,
 
     // ---------------------
@@ -213,49 +144,27 @@ uint8_t const desc_hid_report[] = {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL),
       // LampCount
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_COUNT),
-      HID_LOGICAL_MAX   (4),
+      HID_LOGICAL_MAX   (CFG_RGB_MULTIUPDATE_SIZE),
       HID_REPORT_SIZE   (8),
       HID_REPORT_COUNT  (1),
       HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
-      // LampIds
+      // LampId Slots
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_LOGICAL_MAX   (CFG_RGB_CHANNELS - 1),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (4),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (OUTPUT, CFG_RGB_MULTIUPDATE_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
-      // Lamp #1 (Red, Green, Blue, Intensity)
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      // Lamp #2 (Red, Green, Blue, Intensity)
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      // Lamp #3 (Red, Green, Blue, Intensity)
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      // Lamp #4 (Red, Green, Blue, Intensity)
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      HID_LOGICAL_MAX   (255),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (16),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      // (Red, Green, Blue, Intensity) Slots
+      HID_REPEAT(CFG_RGB_MULTIUPDATE_SIZE,
+        HID_USAGE       (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
+        HID_USAGE       (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
+        HID_USAGE       (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
+        HID_USAGE       (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
+      )
+      HID_ITEM_UINT8    (OUTPUT, 4*CFG_RGB_MULTIUPDATE_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // LampUpdateFlags
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS),
-      HID_LOGICAL_MAX_N (0xFFFF, 2),
-      HID_REPORT_SIZE   (16),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
     HID_COLLECTION_END,
 
     // ---------------------
@@ -267,27 +176,18 @@ uint8_t const desc_hid_report[] = {
       // LampIdStart, LampIdEnd
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_START),
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_END),
-      HID_LOGICAL_MAX   (CFG_RGB_CHANNELS - 1),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (2),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (OUTPUT, 2, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // Red, Green, Blue, Intensity
       HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
       HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
       HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
       HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      HID_LOGICAL_MAX   (255),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (4),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT8    (OUTPUT, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
 
       // LampUpdateFlags
       HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS),
-      HID_LOGICAL_MAX_N (0xFFFF, 2),
-      HID_REPORT_SIZE   (16),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
+      HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
     HID_COLLECTION_END,
 
     // ----------------------
@@ -338,7 +238,7 @@ uint8_t const desc_hid_report[] = {
   HID_COLLECTION_END, // Vendor 12VRGB: Controller
 };
 
-uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
+uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
 {
   return desc_hid_report;
 }
@@ -367,7 +267,7 @@ uint8_t const desc_configuration[] =
   TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
 };
 
-uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
+uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
 {
   return desc_configuration;
 }
