@@ -2,7 +2,10 @@
 #include <string.h>
 
 #include "hardware/flash.h"
+#include "tusb.h"
 
+#include "config.h"
+#include "hid_lighting.h"
 #include "usb_descriptors.h"
 
 // TODO(bkeyes): set appropriate VID / PID
