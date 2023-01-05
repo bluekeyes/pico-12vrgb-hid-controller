@@ -2,10 +2,14 @@
 #include "tusb.h"
 
 #include "config.h"
+#include "controller/controller.h"
+#include "controller/rgb.h"
+#include "hid/data.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/vendor/report.h"
-#include "rgb/rgb.h"
+
+extern controller_t ctrl;
 
 static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqlen)
 {
@@ -24,38 +28,12 @@ static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqle
     return sizeof(report);
 }
 
-static rgb_lamp_id_t next_lamp_id = 0;
-
 static uint16_t get_report_lamp_attributes_response(uint8_t *buffer, uint16_t reqlen)
 {
     if (reqlen < sizeof(lamp_attributes_response_report_t)) {
         return 0;
     }
-
-    rgb_lamp_id_t lamp_id = next_lamp_id;
-    next_lamp_id = (next_lamp_id + 1) % CFG_RGB_LAMP_COUNT;
-
-    lamp_attributes_response_report_t *report = (lamp_attributes_response_report_t *) buffer;
-    report->lamp_id = lamp_id;
-
-    size_t pos_idx = 3 * ((size_t) lamp_id);
-    report->position_x = rgb_lamp_positions[pos_idx];
-    report->position_y = rgb_lamp_positions[pos_idx + 1];
-    report->position_z = rgb_lamp_positions[pos_idx + 2];
-
-    report->lamp_purpose = rgb_lamp_purposes[lamp_id];
-
-    report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
-
-    report->red_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->green_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->blue_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->intensity_level_count = RGB_INTENSITY_LEVEL_COUNT;
-
-    report->is_programmable = 0x01;
-
-    report->input_binding = 0x0000;
-
+    ctrl_get_lamp_attributes(&ctrl, (lamp_attributes_response_report_t *) buffer);
     return sizeof(lamp_attributes_response_report_t);
 }
 
@@ -66,12 +44,7 @@ static void set_report_lamp_attributes_request(uint8_t const *buffer, uint16_t b
     }
 
     lamp_attributes_request_report_t *report = (lamp_attributes_request_report_t *) buffer;
-    rgb_lamp_id_t lamp_id = report->lamp_id;
-
-    if (lamp_id > CFG_RGB_LAMP_COUNT - 1) {
-        lamp_id = 0;
-    }
-    next_lamp_id = lamp_id;
+    ctrl_set_next_lamp_attributes_id(&ctrl, report->lamp_id);
 }
 
 static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize)
@@ -99,6 +72,7 @@ static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsiz
     }
 
     lamp_array_control_report_t *report = (lamp_array_control_report_t *) buffer;
+    ctrl.autonomous_mode = HID_GET_FLAG(report->autonomous_mode) > 0;
 }
 
 static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t bufsize)
@@ -109,7 +83,7 @@ static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t buf
 
     vendor_12vrgb_bootsel_report_t *report = (vendor_12vrgb_bootsel_report_t *) buffer;
 
-    if (report->bootsel_restart & 0x01 > 0) {
+    if (HID_GET_FLAG(report->bootsel_restart) > 0) {
         reset_usb_boot(0, 0);
     }
 }

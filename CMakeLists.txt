@@ -21,8 +21,9 @@ pico_set_program_name(rgb_controller "rgb_controller")
 pico_set_program_version(rgb_controller "0.1")
 
 target_sources(rgb_controller PRIVATE
+  src/controller/controller.c
+  src/controller/rgb.c
   src/main.c
-  src/rgb/rgb.c
   src/usb_descriptors.c
   src/usb_hid.c
 )
