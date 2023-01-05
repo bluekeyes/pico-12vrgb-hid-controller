@@ -2,8 +2,10 @@
 #include "tusb.h"
 
 #include "config.h"
-#include "rgb.h"
-#include "usb_descriptors.h"
+#include "hid/descriptor.h"
+#include "hid/lights/report.h"
+#include "hid/vendor/report.h"
+#include "rgb/rgb.h"
 
 static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqlen)
 {

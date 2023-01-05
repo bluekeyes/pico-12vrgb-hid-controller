@@ -1,4 +1,5 @@
-#include "rgb.h"
+#include "config.h"
+#include "rgb/rgb.h"
 
 const int32_t rgb_lamp_positions[] = {
     CFG_RGB_LAMP_POSITIONS

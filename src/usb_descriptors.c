@@ -5,8 +5,9 @@
 #include "tusb.h"
 
 #include "config.h"
-#include "hid_lighting.h"
-#include "usb_descriptors.h"
+#include "hid/descriptor.h"
+#include "hid/lights/report.h"
+#include "hid/vendor/report.h"
 
 // TODO(bkeyes): set appropriate VID / PID
 #define USB_VID   0xCafe
@@ -46,197 +47,24 @@ uint8_t const *tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 
 uint8_t const desc_hid_report[] = {
-  // ------------------------------------
-  // Lighting and Illumination: LampArray
-  // ------------------------------------
-  HID_USAGE_PAGE    (HID_USAGE_PAGE_LIGHTING),
-  HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY),
-  HID_COLLECTION    (HID_COLLECTION_APPLICATION),
-
-    // All fields in reports are non-negative
-    HID_LOGICAL_MIN (0),
+    // ------------------------------------
+    // Lighting and Illumination: LampArray
+    // ------------------------------------
+    HID_COLLECTION_LAMP_ARRAY,
+        HID_REPORT_DESC_LAMP_ARRAY_ATTRIBUTES       (HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES),
+        HID_REPORT_DESC_LAMP_ATTRIBUTES_REQUEST     (HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST),
+        HID_REPORT_DESC_LAMP_ATTRIBUTES_RESPONSE    (HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE),
+        HID_REPORT_DESC_LAMP_MULTI_UPDATE_REPORT    (HID_REPORT_ID_LAMP_MULTI_UPDATE),
+        HID_REPORT_DESC_LAMP_RANGE_UPDATE_REPORT    (HID_REPORT_ID_LAMP_RANGE_UPDATE),
+        HID_REPORT_DESC_LAMP_ARRAY_CONTROL          (HID_REPORT_ID_LAMP_ARRAY_CONTROL),
+    HID_COLLECTION_END,
 
     // -------------------------
-    // LampArrayAttributesReport
+    // Vendor 12VRGB: Controller
     // -------------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_ARRAY_ATTRIBUTES_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // LampCount
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_COUNT),
-      HID_ITEM_UINT16   (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
-
-      // BoundingBoxWidthInMicrometers, BoundingBoxHeightInMicrometers, BoundingBoxDepthInMicrometers
-      // MinUpdateIntervalInMicroseconds
-      HID_USAGE         (HID_USAGE_LIGHTING_BOUNDING_BOX_WIDTH_IN_MICROMETERS),
-      HID_USAGE         (HID_USAGE_LIGHTING_BOUNDING_BOX_HEIGHT_IN_MICROMETERS),
-      HID_USAGE         (HID_USAGE_LIGHTING_BOUNDING_BOX_DEPTH_IN_MICROMETERS),
-      HID_USAGE         (HID_USAGE_LIGHTING_MIN_UPDATE_INTERVAL_IN_MICROSECONDS),
-      HID_ITEM_INT32    (INPUT, 4, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
-
-      // LampArrayKind
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY_KIND),
-      HID_ITEM_UINT8    (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
+    HID_COLLECTION_VENDOR_12VRGB,
+        HID_REPORT_DESC_VENDOR_12VRGB_BOOTSEL       (HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL),
     HID_COLLECTION_END,
-
-    // ---------------------------
-    // LampAttributesRequestReport
-    // ---------------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_ATTRIBUTES_REQUEST_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // LampId
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_ITEM_UINT8    (OUTPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
-    HID_COLLECTION_END,
-
-    // ----------------------------
-    // LampAttributesResponseReport
-    // ----------------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_ATTRIBUTES_RESPONSE_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // LampId
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_ITEM_UINT8    (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),
-
-      // PositionXInMicrometers, PositionYInMicrometers, PositionZInMicrometers
-      HID_USAGE         (HID_USAGE_LIGHTING_POSITION_X_IN_MICROMETERS),
-      HID_USAGE         (HID_USAGE_LIGHTING_POSITION_Y_IN_MICROMETERS),
-      HID_USAGE         (HID_USAGE_LIGHTING_POSITION_Z_IN_MICROMETERS),
-      HID_ITEM_INT32    (INPUT, 3, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // LampPurposes
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_PURPOSES),
-      HID_ITEM_UINT16   (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // UpdateLatencyInMicroseconds
-      HID_USAGE         (HID_USAGE_LIGHTING_UPDATE_LATENCY_IN_MICROSECONDS),
-      HID_ITEM_INT32    (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // RedLevelCount, GreenLevelCount, BlueLevelCount, IntensityLevelCount
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_LEVEL_COUNT),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_LEVEL_COUNT),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_LEVEL_COUNT),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_LEVEL_COUNT),
-      HID_ITEM_UINT8    (INPUT, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // IsProgrammable
-      HID_USAGE         (HID_USAGE_LIGHTING_IS_PROGRAMMABLE),
-      HID_LOGICAL_MAX   (1),
-      HID_REPORT_SIZE   (1),
-      HID_REPORT_COUNT  (1),
-      HID_INPUT         (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // Padding
-      HID_REPORT_SIZE   (7),
-      HID_INPUT         (HID_CONSTANT),
-
-      // InputBinding
-      HID_USAGE         (HID_USAGE_LIGHTING_INPUT_BINDING),
-      HID_ITEM_UINT16   (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-    HID_COLLECTION_END,
-
-    // ---------------------
-    // LampMultiUpdateReport
-    // ---------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_MULTI_UPDATE)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_MULTI_UPDATE_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // LampCount
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_COUNT),
-      HID_LOGICAL_MAX   (CFG_RGB_MULTI_UPDATE_SIZE),
-      HID_REPORT_SIZE   (8),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // LampId Slots
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID),
-      HID_ITEM_UINT8    (OUTPUT, CFG_RGB_MULTI_UPDATE_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // (Red, Green, Blue, Intensity) Slots
-      HID_REPEAT(CFG_RGB_MULTI_UPDATE_SIZE,
-        HID_USAGE       (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-        HID_USAGE       (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-        HID_USAGE       (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-        HID_USAGE       (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      )
-      HID_ITEM_UINT8    (OUTPUT, 4*CFG_RGB_MULTI_UPDATE_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // LampUpdateFlags
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS),
-      HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-    HID_COLLECTION_END,
-
-    // ---------------------
-    // LampRangeUpdateReport
-    // ---------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_RANGE_UPDATE)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_RANGE_UPDATE_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // LampIdStart, LampIdEnd
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_START),
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_END),
-      HID_ITEM_UINT8    (OUTPUT, 2, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // Red, Green, Blue, Intensity
-      HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL),
-      HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL),
-      HID_ITEM_UINT8    (OUTPUT, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // LampUpdateFlags
-      HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS),
-      HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-    HID_COLLECTION_END,
-
-    // ----------------------
-    // LampArrayControlReport
-    // ----------------------
-    HID_REPORT_ID   (HID_REPORT_ID_LAMP_ARRAY_CONTROL)
-    HID_USAGE       (HID_USAGE_LIGHTING_LAMP_ARRAY_CONTROL_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // AutonomousMode
-      HID_USAGE         (HID_USAGE_LIGHTING_AUTONOMOUS_MODE),
-      HID_LOGICAL_MAX   (1),
-      HID_REPORT_SIZE   (1),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),
-
-      // Padding
-      HID_REPORT_SIZE   (7),
-      HID_OUTPUT        (HID_CONSTANT),
-    HID_COLLECTION_END,
-
-  HID_COLLECTION_END, // Lighting and Illumination: LampArray
-
-  // -------------------------
-  // Vendor 12VRGB: Controller
-  // -------------------------
-  HID_USAGE_PAGE_N  (HID_USAGE_PAGE_VENDOR_12VRGB, 2),
-  HID_USAGE         (HID_USAGE_VENDOR_12VRGB_CONTROLLER),
-  HID_COLLECTION    (HID_COLLECTION_APPLICATION),
-
-    // -------------
-    // BootSelReport
-    // -------------
-    HID_REPORT_ID   (HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL)
-    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT),
-    HID_COLLECTION  (HID_COLLECTION_LOGICAL),
-      // BootSelRestart
-      HID_USAGE         (HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART),
-      HID_LOGICAL_MAX   (1),
-      HID_REPORT_SIZE   (1),
-      HID_REPORT_COUNT  (1),
-      HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_RELATIVE | HID_PREFERRED_STATE),
-
-      // Padding
-      HID_REPORT_SIZE   (7),
-      HID_OUTPUT        (HID_CONSTANT),
-    HID_COLLECTION_END,
-
-  HID_COLLECTION_END, // Vendor 12VRGB: Controller
 };
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)

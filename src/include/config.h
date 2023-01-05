@@ -1,7 +1,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#include "hid_lighting.h"
+#include "hid/lights/usage.h"
 
 // The device version as 0xJJMN, where JJ is the major version, M is the minor
 // version and N is the patch version.

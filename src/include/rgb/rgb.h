@@ -1,9 +1,7 @@
-#ifndef RGB_H_
-#define RGB_H_
+#ifndef RGB_RGB_H_
+#define RGB_RGB_H_
 
 #include <stdint.h>
-
-#include "config.h"
 
 // rgb_lamp_id_t identifies an addressable lamp.
 typedef uint8_t rgb_lamp_id_t;
@@ -17,4 +15,4 @@ typedef uint8_t rgb_level_t;
 extern const int32_t rgb_lamp_positions[];
 extern const uint16_t rgb_lamp_purposes[];
 
-#endif
+#endif // RGB_RGB_H_
