@@ -30,10 +30,9 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_repor
 
     HID_SET_FLAG(report->is_programmable);
 
-    size_t pos_idx = 3 * ((size_t) lamp_id);
-    report->position_x = rgb_lamp_positions[pos_idx];
-    report->position_y = rgb_lamp_positions[pos_idx + 1];
-    report->position_z = rgb_lamp_positions[pos_idx + 2];
+    report->position_x = rgb_lamp_positions[lamp_id][0];
+    report->position_y = rgb_lamp_positions[lamp_id][1];
+    report->position_z = rgb_lamp_positions[lamp_id][2];
 
     report->red_level_count = RGB_COLOR_LEVEL_COUNT;
     report->green_level_count = RGB_COLOR_LEVEL_COUNT;

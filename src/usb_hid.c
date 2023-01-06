@@ -3,11 +3,11 @@
 
 #include "config.h"
 #include "controller/controller.h"
-#include "controller/rgb.h"
 #include "hid/data.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/vendor/report.h"
+#include "rgb/rgb.h"
 
 extern controller_t ctrl;
 
@@ -54,6 +54,22 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
     }
 
     lamp_multi_update_report_t *report = (lamp_multi_update_report_t *) buffer;
+
+    if (report->lamp_count > LAMP_MULTI_UPDATE_BATCH_SIZE) {
+        return;
+    }
+
+    // TODO(bkeyes): this updates lamps immediately, should we buffer until complete flag is set?
+
+    for (uint8_t i = 0; i < report->lamp_count; i++) {
+        rgb_lamp_id_t id = report->lamp_ids[i];
+        if (id > CFG_RGB_LAMP_COUNT - 1) {
+            // TODO(bkeyes): per spec, this should skip the whole report
+            continue;
+        }
+        // TODO(bkeyes): per spec, need to check levels against allowed counts
+        rgb_set_lamp_color_tuple(id, report->rgbi_tuples[i]);
+    }
 }
 
 static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize)

@@ -1,8 +1,8 @@
 #ifndef CONTROLLER_CONTROLLER_H_
 #define CONTROLLER_CONTROLLER_H_
 
-#include "controller/rgb.h"
 #include "hid/lights/report.h"
+#include "rgb/rgb.h"
 
 typedef struct {
     bool autonomous_mode;

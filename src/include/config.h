@@ -10,12 +10,12 @@
 // The number of individually addressable lamps / RGB channels
 //
 // Range: [1, 256]
-#define CFG_RGB_LAMP_COUNT 1
+#define CFG_RGB_LAMP_COUNT 2
 
 // The number of lamps that can be updated in a single LampMultiUpdateReport
 //
 // Range: [1, 8]
-#define CFG_RGB_MULTI_UPDATE_SIZE 1
+#define CFG_RGB_MULTI_UPDATE_SIZE 2
 
 // The dimensions of the bounding box that contains all lights
 //
@@ -30,7 +30,8 @@
 //
 // Units: Micrometers
 #define CFG_RGB_LAMP_POSITIONS \
-    0, 0, 0,
+    {0, 0, 0}, \
+    {0, 0, 0},
 
 // Lamp purpose flags. The number of entries must equal CFG_RGB_LAMP_COUNT. The
 // following flags are allowed, see Section 25.3.1 in the HID Usage Table for
@@ -44,19 +45,39 @@
 //     LAMP_PURPOSE_PRESENTATION   0x20
 //
 #define CFG_RGB_LAMP_PURPOSES \
-    LAMP_PURPOSE_ACCENT
+    LAMP_PURPOSE_ACCENT, \
+    LAMP_PURPOSE_ACCENT,
+
+// Map lamp RGB channels to GPIO pins as (R, G, B) tuples. The number of
+// entries must equal CFG_RGB_LAMP_COUNT. Each pin in the mapping must connect
+// to a unique PWM channel. For example, you may not use both pin 0 and pin 16
+// because they are both connected to PWM channel 0A.
+//
+// The PCB routes these pins so they appear on headers in G-R-B order. You can
+// change this in software by swapping the pin positions for a given lamp.
+// Other changes to the pin layout will also require hardware changes.
+#define CFG_RGB_LAMP_PIN_MAPPING \
+    {3, 2, 4}, \
+    {6, 5, 7},
+
+// Set the divider for the PWM clock. The PWM counters wrap at the full 16-bit
+// value, so with a 125 MHz system clock, the default value gives a PWM
+// frequency of ~250 Hz.
+#define CFG_RGB_PWM_CLOCK_DIVIDER 7.625f
 
 // The minimum update interval.
 //
 // Range: [0, 2^31-1]
 // Units: Microseconds
-#define CFG_RGB_MINIMUM_UPDATE_INTERVAL 0
+#define CFG_RGB_MINIMUM_UPDATE_INTERVAL 4000
 
 // The latency between requesting a lamp update and the change being visible.
-// Assumed to be the constant for all lamps.
+// Assumed to be the constant for all lamps. This is primarly determined by the
+// PWM frequency: an update at the start of a cycle will not be visible until
+// the start of the next cycle.
 //
 // Range: [0, 2^31-1]
 // Units: Microseconds
-#define CFG_RGB_LAMP_UPDATE_LATENCY 0
+#define CFG_RGB_LAMP_UPDATE_LATENCY 4000
 
 #endif

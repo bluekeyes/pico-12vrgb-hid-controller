@@ -169,7 +169,7 @@ typedef struct __attribute__ ((packed)) {
 typedef struct __attribute__ ((packed)) {
     uint8_t  lamp_count;
     uint8_t  lamp_ids[LAMP_MULTI_UPDATE_BATCH_SIZE];
-    uint8_t  rgbi_tuples[4 * LAMP_MULTI_UPDATE_BATCH_SIZE];
+    uint8_t  rgbi_tuples[LAMP_MULTI_UPDATE_BATCH_SIZE][4];
     uint16_t update_flags;
 } lamp_multi_update_report_t;
 
