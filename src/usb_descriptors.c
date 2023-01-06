@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "hardware/flash.h"
+#include "pico/unique_id.h"
 #include "tusb.h"
 
 #include "config.h"
@@ -105,8 +105,7 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
 // String Descriptors
 //--------------------------------------------------------------------+
 
-#define MAX_DESCRIPTOR_LENGTH   31
-#define FLASH_ID_BYTES          8
+#define MAX_DESCRIPTOR_LENGTH 31
 
 // static string descriptors
 static char const *string_desc_arr[] = {
@@ -118,20 +117,20 @@ static char const *string_desc_arr[] = {
 
 static inline char hex_char(uint8_t v)
 {
-    return v < 0xA ? '0' + v : 'A' - 0xA + v;
+    return v < 0xA ? '0' + v : 'A' + v - 0xA;
 }
 
 static uint8_t get_serial_number_string(uint16_t *str)
 {
-    uint8_t id[FLASH_ID_BYTES];
-    flash_get_unique_id(id);
+    pico_unique_board_id_t id;
+    pico_get_unique_board_id(&id);
 
-    for (uint8_t i = 0; i < FLASH_ID_BYTES; i++) {
-        str[2*i] = hex_char(id[i] & 0x0F);
-        str[2*i+1] = hex_char((id[i] >> 4) & 0x0F);
+    for (uint8_t i = 0; i < PICO_UNIQUE_BOARD_ID_SIZE_BYTES; i++) {
+        str[2*i] = hex_char(id.id[i] & 0x0F);
+        str[2*i+1] = hex_char((id.id[i] >> 4) & 0x0F);
     }
 
-    return 2 * FLASH_ID_BYTES;
+    return 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES;
 }
 
 // buffer for returning string descriptors
