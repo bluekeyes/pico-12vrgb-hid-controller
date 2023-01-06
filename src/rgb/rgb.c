@@ -25,14 +25,13 @@ void rgb_init()
     for (uint8_t i = 0; i < CFG_RGB_LAMP_COUNT; i++) {
         for (uint8_t j = 0; j < 3; j++) {
             uint8_t pin = rgb_lamp_pins[i][j];
+            gpio_set_function(pin, GPIO_FUNC_PWM);
 
             uint8_t slice = pwm_gpio_to_slice_num(pin);
-            if (slice_mask & (1 << slice) == 0) {
+            if ((slice_mask & (1 << slice)) == 0) {
                 pwm_init(slice, &config, false);
                 slice_mask |= (1 << slice);
             }
-
-            gpio_set_function(pin, GPIO_FUNC_PWM);
             pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), 0);
         }
     }
