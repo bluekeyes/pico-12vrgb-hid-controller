@@ -12,8 +12,8 @@ const uint16_t rgb_lamp_purposes[CFG_RGB_LAMP_COUNT] = {
     CFG_RGB_LAMP_PURPOSES
 };
 
-const uint8_t rgb_lamp_pins[CFG_RGB_LAMP_COUNT][3] = {
-    CFG_RGB_LAMP_PIN_MAPPING
+const uint8_t rgb_lamp_gpios[CFG_RGB_LAMP_COUNT][3] = {
+    CFG_RGB_LAMP_GPIO_MAPPING
 };
 
 void rgb_init()
@@ -24,7 +24,7 @@ void rgb_init()
     uint8_t slice_mask = 0;
     for (uint8_t i = 0; i < CFG_RGB_LAMP_COUNT; i++) {
         for (uint8_t j = 0; j < 3; j++) {
-            uint8_t pin = rgb_lamp_pins[i][j];
+            uint8_t pin = rgb_lamp_gpios[i][j];
             gpio_set_function(pin, GPIO_FUNC_PWM);
 
             uint8_t slice = pwm_gpio_to_slice_num(pin);
@@ -50,9 +50,9 @@ void rgb_set_lamp_color(rgb_lamp_id_t lamp_id, rgb_level_t red, rgb_level_t gree
         return;
     }
 
-    uint8_t rp = rgb_lamp_pins[lamp_id][0];
-    uint8_t gp = rgb_lamp_pins[lamp_id][1];
-    uint8_t bp = rgb_lamp_pins[lamp_id][2];
+    uint8_t rp = rgb_lamp_gpios[lamp_id][0];
+    uint8_t gp = rgb_lamp_gpios[lamp_id][1];
+    uint8_t bp = rgb_lamp_gpios[lamp_id][2];
 
     if (intensity == 0) {
         pwm_set_gpio_level(rp, 0);

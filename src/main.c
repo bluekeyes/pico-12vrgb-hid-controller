@@ -10,7 +10,6 @@ int main()
 {
     ctrl_init(&ctrl);
     rgb_init();
-
     tusb_init();
 
     while (true) {

@@ -48,15 +48,15 @@
     LAMP_PURPOSE_ACCENT, \
     LAMP_PURPOSE_ACCENT,
 
-// Map lamp RGB channels to GPIO pins as (R, G, B) tuples. The number of
-// entries must equal CFG_RGB_LAMP_COUNT. Each pin in the mapping must connect
-// to a unique PWM channel. For example, you may not use both pin 0 and pin 16
+// Map lamp RGB channels to GPIOs as (R, G, B) tuples. The number of entries
+// must equal CFG_RGB_LAMP_COUNT. Each GPIO in the mapping must connect to a
+// unique PWM channel. For example, you may not use both GPIO 0 and GPIO 16
 // because they are both connected to PWM channel 0A.
 //
-// The PCB routes these pins so they appear on headers in G-R-B order. You can
-// change this in software by swapping the pin positions for a given lamp.
-// Other changes to the pin layout will also require hardware changes.
-#define CFG_RGB_LAMP_PIN_MAPPING \
+// The PCB routes these GPIOs so they appear on headers in G-R-B order. You can
+// change this in software by swapping the positions for a given lamp.  Other
+// changes to this options will require hardware changes.
+#define CFG_RGB_LAMP_GPIO_MAPPING \
     {3, 2, 4}, \
     {6, 5, 7},
 

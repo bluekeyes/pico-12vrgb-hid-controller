@@ -16,7 +16,7 @@ typedef uint8_t rgb_level_t;
 
 extern const int32_t  rgb_lamp_positions[CFG_RGB_LAMP_COUNT][3];
 extern const uint16_t rgb_lamp_purposes[CFG_RGB_LAMP_COUNT];
-extern const uint8_t  rgb_lamp_pins[CFG_RGB_LAMP_COUNT][3];
+extern const uint8_t  rgb_lamp_gpios[CFG_RGB_LAMP_COUNT][3];
 
 void rgb_init();
 void rgb_set_lamp_color_tuple(rgb_lamp_id_t lamp_id, rgb_lamp_id_t const *tuple);
