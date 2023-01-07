@@ -29,6 +29,11 @@ def bootsel():
     write_output_report(d, bytes([0x07, 0x01]))
 
 
+def set_autonomous_mode(enabled):
+    d = find_lighting_device()
+    write_output_report(d, bytes([0x06, 0x01 if enabled else 0x00]))
+
+
 def update_lamp0(r, g, b):
     d = find_lighting_device()
     write_output_report(d, bytes([
