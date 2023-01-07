@@ -65,16 +65,19 @@
 // frequency of ~250 Hz.
 #define CFG_RGB_PWM_CLOCK_DIVIDER 7.625f
 
-// The minimum update interval.
+// The minimum update interval. This is the minimum amount of time a host must
+// wait between sending complete lamp update reports. Because this device does
+// nothing else, this defaults to the maximum update latency as determined by
+// the PWM period.
 //
 // Range: [0, 2^31-1]
 // Units: Microseconds
 #define CFG_RGB_MINIMUM_UPDATE_INTERVAL 4000
 
-// The latency between requesting a lamp update and the change being visible.
-// Assumed to be the constant for all lamps. This is primarly determined by the
-// PWM frequency: an update at the start of a cycle will not be visible until
-// the start of the next cycle.
+// The maximum latency between requesting a lamp update and the change being
+// visible. Assumed to be the constant for all lamps. This is primarly
+// determined by the PWM period: an update at the start of a cycle will not be
+// visible until the start of the next cycle.
 //
 // Range: [0, 2^31-1]
 // Units: Microseconds

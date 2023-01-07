@@ -73,6 +73,9 @@ void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous)
 
 void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tuple)
 {
+    if (ctrl->is_autonomous) {
+        return;
+    }
     lamp_state *state = &ctrl->lamp_state[lamp_id];
     state->next = *tuple;
     state->dirty = true;
@@ -80,5 +83,8 @@ void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tu
 
 void ctrl_apply_lamp_updates(controller_t *ctrl)
 {
+    if (ctrl->is_autonomous) {
+        return;
+    }
     ctrl->do_update = true;
 }
