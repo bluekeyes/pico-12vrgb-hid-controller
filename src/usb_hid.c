@@ -81,6 +81,23 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
     }
 
     lamp_range_update_report_t *report = (lamp_range_update_report_t *) buffer;
+
+    if (report->lamp_id_start > CFG_RGB_LAMP_COUNT - 1 || report->lamp_id_end > CFG_RGB_LAMP_COUNT - 1) {
+        return;
+    }
+    if (report->lamp_id_start > report->lamp_id_end) {
+        return;
+    }
+
+    rgb_tuple_t *tuple = (rgb_tuple_t *) report->rgbi_tuple;
+    for (rgb_lamp_id_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
+        // TODO(bkeyes): per spec, need to check levels against allowed counts
+        ctrl_update_lamp(&ctrl, id, tuple);
+    }
+
+    if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
+        ctrl_apply_lamp_updates(&ctrl);
+    }
 }
 
 static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsize)
