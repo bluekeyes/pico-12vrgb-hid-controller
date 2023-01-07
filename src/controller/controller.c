@@ -8,7 +8,7 @@
 
 void ctrl_init(controller_t *ctrl)
 {
-    ctrl->autonomous_mode = true;
+    ctrl->is_autonomous = true;
     ctrl->next_lamp_id = 0;
 
     ctrl->do_update = false;
@@ -64,6 +64,11 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_repor
 
     report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
     report->input_binding = 0x0000;
+}
+
+void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous)
+{
+    ctrl->is_autonomous = autonomous;
 }
 
 void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tuple)

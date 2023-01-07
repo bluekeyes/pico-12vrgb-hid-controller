@@ -69,7 +69,7 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
         ctrl_update_lamp(&ctrl, id, (rgb_tuple_t *) &report->rgbi_tuples[i]);
     }
 
-    if ((report->update_flags & LAMP_UPDATE_COMPLETE) > 0) {
+    if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
         ctrl_apply_lamp_updates(&ctrl);
     }
 }
@@ -90,7 +90,7 @@ static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsiz
     }
 
     lamp_array_control_report_t *report = (lamp_array_control_report_t *) buffer;
-    ctrl.autonomous_mode = HID_GET_FLAG(report->autonomous_mode) > 0;
+    ctrl_set_autonomous_mode(&ctrl, HID_GET_FLAG(report->autonomous_mode) != 0);
 }
 
 static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t bufsize)
