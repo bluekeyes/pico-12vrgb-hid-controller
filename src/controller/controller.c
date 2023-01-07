@@ -1,12 +1,35 @@
+#include <string.h>
+
 #include "config.h"
 #include "controller/controller.h"
 #include "hid/data.h"
 #include "hid/lights/report.h"
+#include "rgb/rgb.h"
 
 void ctrl_init(controller_t *ctrl)
 {
     ctrl->autonomous_mode = true;
     ctrl->next_lamp_id = 0;
+
+    ctrl->do_update = false;
+    memset(ctrl->lamp_state, 0, sizeof(ctrl->lamp_state));
+}
+
+void ctrl_task(controller_t *ctrl)
+{
+    if (ctrl->do_update) {
+        for (rgb_lamp_id_t id = 0; id < CFG_RGB_LAMP_COUNT; id++) {
+            lamp_state *state = &ctrl->lamp_state[id];
+            if (state->dirty) {
+                rgb_set_lamp_color(id, &state->next);
+
+                state->current = state->next;
+                memset(&state->next, 0, sizeof(rgb_tuple_t));
+                state->dirty = false;
+            }
+        }
+        ctrl->do_update = false;
+    }
 }
 
 void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, rgb_lamp_id_t lamp_id)
@@ -41,4 +64,16 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_repor
 
     report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
     report->input_binding = 0x0000;
+}
+
+void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tuple)
+{
+    lamp_state *state = &ctrl->lamp_state[lamp_id];
+    state->next = *tuple;
+    state->dirty = true;
+}
+
+void ctrl_apply_lamp_updates(controller_t *ctrl)
+{
+    ctrl->do_update = true;
 }

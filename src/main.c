@@ -13,6 +13,7 @@ int main()
     tusb_init();
 
     while (true) {
+        ctrl_task(&ctrl);
         tud_task();
     }
 

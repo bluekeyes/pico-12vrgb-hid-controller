@@ -6,6 +6,7 @@
 #include "hid/data.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
+#include "hid/lights/usage.h"
 #include "hid/vendor/report.h"
 #include "rgb/rgb.h"
 
@@ -59,16 +60,17 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
         return;
     }
 
-    // TODO(bkeyes): this updates lamps immediately, should we buffer until complete flag is set?
-
     for (uint8_t i = 0; i < report->lamp_count; i++) {
         rgb_lamp_id_t id = report->lamp_ids[i];
         if (id > CFG_RGB_LAMP_COUNT - 1) {
-            // TODO(bkeyes): per spec, this should skip the whole report
-            continue;
+            return;
         }
         // TODO(bkeyes): per spec, need to check levels against allowed counts
-        rgb_set_lamp_color_tuple(id, report->rgbi_tuples[i]);
+        ctrl_update_lamp(&ctrl, id, (rgb_tuple_t *) &report->rgbi_tuples[i]);
+    }
+
+    if ((report->update_flags & LAMP_UPDATE_COMPLETE) > 0) {
+        ctrl_apply_lamp_updates(&ctrl);
     }
 }
 

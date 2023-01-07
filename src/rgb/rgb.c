@@ -16,6 +16,12 @@ const uint8_t rgb_lamp_gpios[CFG_RGB_LAMP_COUNT][3] = {
     CFG_RGB_LAMP_GPIO_MAPPING
 };
 
+static inline uint16_t rgb_get_pwm_level(rgb_level_t level)
+{
+    // squaring a value is a simple approximation for gamma corection
+    return ((uint16_t) level) * ((uint16_t) level);
+}
+
 void rgb_init()
 {
     pwm_config config = pwm_get_default_config();
@@ -39,12 +45,7 @@ void rgb_init()
     pwm_set_mask_enabled(slice_mask);
 }
 
-void rgb_set_lamp_color_tuple(rgb_lamp_id_t lamp_id, rgb_lamp_id_t const *tuple)
-{
-    rgb_set_lamp_color(lamp_id, tuple[0], tuple[1], tuple[2], tuple[3]);
-}
-
-void rgb_set_lamp_color(rgb_lamp_id_t lamp_id, rgb_level_t red, rgb_level_t green, rgb_level_t blue, rgb_level_t intensity)
+void rgb_set_lamp_color(rgb_lamp_id_t lamp_id, rgb_tuple_t const *tuple)
 {
     if (lamp_id > CFG_RGB_LAMP_COUNT - 1) {
         return;
@@ -54,19 +55,13 @@ void rgb_set_lamp_color(rgb_lamp_id_t lamp_id, rgb_level_t red, rgb_level_t gree
     uint8_t gp = rgb_lamp_gpios[lamp_id][1];
     uint8_t bp = rgb_lamp_gpios[lamp_id][2];
 
-    if (intensity == 0) {
+    if (tuple->i == 0) {
         pwm_set_gpio_level(rp, 0);
         pwm_set_gpio_level(gp, 0);
         pwm_set_gpio_level(bp, 0);
     } else {
-        pwm_set_gpio_level(rp, rgb_get_pwm_level(red));
-        pwm_set_gpio_level(gp, rgb_get_pwm_level(green));
-        pwm_set_gpio_level(bp, rgb_get_pwm_level(blue));
+        pwm_set_gpio_level(rp, rgb_get_pwm_level(tuple->r));
+        pwm_set_gpio_level(gp, rgb_get_pwm_level(tuple->g));
+        pwm_set_gpio_level(bp, rgb_get_pwm_level(tuple->b));
     }
-}
-
-uint16_t rgb_get_pwm_level(rgb_level_t level)
-{
-    // squaring a value is a simple approximation for gamma corection
-    return ((uint16_t) level) * ((uint16_t) level);
 }
