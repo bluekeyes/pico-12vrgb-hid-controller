@@ -1,10 +1,21 @@
+#include <stdint.h>
 #include <string.h>
+
+#include "hardware/timer.h"
 
 #include "config.h"
 #include "controller/controller.h"
 #include "hid/data.h"
 #include "hid/lights/report.h"
 #include "rgb/rgb.h"
+
+#define FRAME_TIME_US   8333 // ~120 fps
+#define FADE_FRAMES     120
+#define PAUSE_FRAMES    30
+
+static rgb_oklab_t start_color;
+static rgb_oklab_t target_color;
+static float Ldiff;
 
 void ctrl_init(controller_t *ctrl)
 {
@@ -13,10 +24,68 @@ void ctrl_init(controller_t *ctrl)
 
     ctrl->do_update = false;
     memset(ctrl->lamp_state, 0, sizeof(ctrl->lamp_state));
+
+    rgb_tuple_t rgb_color = {0xa6, 0x24, 0xa6, 1};
+
+    start_color = rgb_to_oklab(rgb_color);
+    target_color = start_color;
+
+    start_color.L = 0;
+    target_color.L = 0.5;
+
+    Ldiff = (target_color.L - start_color.L) / ((float) FADE_FRAMES);
+}
+
+static void animation_fade_frame(controller_t *ctrl)
+{
+    static uint8_t frame_count = 0;
+    static uint8_t state = 0;
+    static rgb_oklab_t color = {0, 0, 0};
+
+    rgb_tuple_t rgb;
+    switch (state) {
+        case 0: // fade-in
+            if (frame_count == 0) {
+                color = start_color;
+            }
+
+            color.L += Ldiff;
+            rgb = rgb_from_oklab(color);
+            rgb_set_lamp_color(0, &rgb);
+
+            frame_count++;
+            if (frame_count == FADE_FRAMES) {
+                frame_count = 0;
+                state = 1;
+            }
+            break;
+
+        case 1: // fade-out
+            color.L -= Ldiff;
+            rgb = rgb_from_oklab(color);
+            rgb_set_lamp_color(0, &rgb);
+
+            frame_count++;
+            if (frame_count == FADE_FRAMES) {
+                frame_count = 0;
+                state = 2;
+            }
+            break;
+
+        case 2: // pause
+            frame_count++;
+            if (frame_count == PAUSE_FRAMES) {
+                frame_count = 0;
+                state = 0;
+            }
+            break;
+    }
 }
 
 void ctrl_task(controller_t *ctrl)
 {
+    static uint32_t last = 0;
+
     if (ctrl->do_update) {
         for (rgb_lamp_id_t id = 0; id < CFG_RGB_LAMP_COUNT; id++) {
             lamp_state *state = &ctrl->lamp_state[id];
@@ -29,6 +98,22 @@ void ctrl_task(controller_t *ctrl)
             }
         }
         ctrl->do_update = false;
+    }
+
+    if (ctrl->is_autonomous) {
+        uint32_t elapsed;
+        uint32_t now = time_us_32();
+        if (now < last) {
+            // timer overflow
+            elapsed = now + (UINT32_MAX - last) + 1;
+        } else {
+            elapsed = now - last;
+        }
+
+        if (elapsed >= FRAME_TIME_US) {
+            last = now;
+            animation_fade_frame(ctrl);
+        }
     }
 }
 
