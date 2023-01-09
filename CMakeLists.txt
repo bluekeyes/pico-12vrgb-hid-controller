@@ -21,6 +21,7 @@ pico_set_program_name(rgb_controller "rgb_controller")
 pico_set_program_version(rgb_controller "0.1")
 
 target_sources(rgb_controller PRIVATE
+  src/controller/animations/fade.c
   src/controller/controller.c
   src/main.c
   src/rgb/rgb.c

@@ -83,4 +83,10 @@
 // Units: Microseconds
 #define CFG_RGB_LAMP_UPDATE_LATENCY 4000
 
+// The built-in animation framerate.
+//
+// Range: [1, PWM frequency]
+// Units: Hz
+#define CFG_RGB_ANIMATION_FRAME_RATE 120
+
 #endif

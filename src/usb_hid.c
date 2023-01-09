@@ -53,6 +53,9 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
     if (bufsize < sizeof(lamp_multi_update_report_t)) {
         return;
     }
+    if (ctrl_get_autonomous_mode(&ctrl)) {
+        return;
+    }
 
     lamp_multi_update_report_t *report = (lamp_multi_update_report_t *) buffer;
 
@@ -66,7 +69,7 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
             return;
         }
         // TODO(bkeyes): per spec, need to check levels against allowed counts
-        ctrl_update_lamp(&ctrl, id, (rgb_tuple_t *) &report->rgbi_tuples[i]);
+        ctrl_update_lamp(&ctrl, id, (rgb_tuple_t *) &report->rgbi_tuples[i], false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
@@ -77,6 +80,9 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
 static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize)
 {
     if (bufsize < sizeof(lamp_range_update_report_t)) {
+        return;
+    }
+    if (ctrl_get_autonomous_mode(&ctrl)) {
         return;
     }
 
@@ -92,7 +98,7 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
     rgb_tuple_t *tuple = (rgb_tuple_t *) report->rgbi_tuple;
     for (rgb_lamp_id_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
         // TODO(bkeyes): per spec, need to check levels against allowed counts
-        ctrl_update_lamp(&ctrl, id, tuple);
+        ctrl_update_lamp(&ctrl, id, tuple, false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
