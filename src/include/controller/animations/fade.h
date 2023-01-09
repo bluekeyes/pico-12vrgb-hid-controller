@@ -4,17 +4,17 @@
 #include <stdint.h>
 
 #include "controller/controller.h"
-#include "rgb/rgb.h"
+#include "color/color.h"
 
 #define MAX_FADE_TARGETS 8
 
 struct AnimationFade {
     uint8_t lamp_id;
 
-    rgb_oklab_t current_color;
+    struct Labf current_color;
 
     uint8_t target_count;
-    rgb_oklab_t targets[MAX_FADE_TARGETS];
+    struct Labf targets[MAX_FADE_TARGETS];
 
     uint32_t fade_frames;
     uint32_t hold_frames[MAX_FADE_TARGETS];
@@ -25,7 +25,7 @@ struct AnimationFade {
 };
 
 struct AnimationFade anim_fade_get_defaults();
-void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets, uint8_t count);
+void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uint8_t count);
 void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us);
 void anim_fade_set_hold_time(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time_us);
 uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state);
@@ -34,7 +34,7 @@ uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state);
  * Shortcuts for specific types of fade effect
  */
 
-struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us);
-struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uint32_t fade_time_us);
+struct AnimationFade anim_fade_breathe(struct RGBi color, uint32_t fade_time_us);
+struct AnimationFade anim_fade_cross(struct RGBi color1, struct RGBi color2, uint32_t fade_time_us);
 
 #endif /* CONTROLLER_ANIMATIONS_FADE_H_ */

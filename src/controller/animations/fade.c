@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "controller/controller.h"
+#include "color/color.h"
 #include "controller/animations/fade.h"
-#include "rgb/rgb.h"
+#include "controller/controller.h"
 
 struct AnimationFade anim_fade_get_defaults()
 {
-    rgb_oklab_t targets[] = {
+    struct Labf targets[] = {
         {0.f, 0.f, 0.f},
         {1.f, 0.f, 0.f},
     };
@@ -27,10 +27,10 @@ struct AnimationFade anim_fade_get_defaults()
     return fade;
 }
 
-struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us)
+struct AnimationFade anim_fade_breathe(struct RGBi color, uint32_t fade_time_us)
 {
-    rgb_oklab_t targets[2];
-    targets[0] = rgb_to_oklab(color);
+    struct Labf targets[2];
+    targets[0] = rgb_to_oklab(rgbi_to_f(color));
     targets[1] = targets[0];
     targets[1].L = 0.f;
 
@@ -42,11 +42,11 @@ struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us)
     return fade;
 }
 
-struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uint32_t fade_time_us)
+struct AnimationFade anim_fade_cross(struct RGBi color1, struct RGBi color2, uint32_t fade_time_us)
 {
-    rgb_oklab_t targets[] = {
-        rgb_to_oklab(color1),
-        rgb_to_oklab(color2),
+    struct Labf targets[] = {
+        rgb_to_oklab(rgbi_to_f(color1)),
+        rgb_to_oklab(rgbi_to_f(color2)),
     };
 
     struct AnimationFade fade = anim_fade_get_defaults();
@@ -57,11 +57,11 @@ struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uin
     return fade;
 }
 
-void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets, uint8_t count)
+void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uint8_t count)
 {
     count = count > MAX_FADE_TARGETS ? MAX_FADE_TARGETS : count;
 
-    memcpy(fade->targets, targets, count * sizeof(rgb_oklab_t));
+    memcpy(fade->targets, targets, count * sizeof(struct Labf));
     fade->target_count = count;
     fade->current_color = targets[count - 1];
 }
@@ -119,8 +119,14 @@ uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state)
     }
 
     if (is_dirty) {
-        rgb_tuple_t rgb = rgb_from_oklab(fade->current_color);
-        ctrl_update_lamp(ctrl, fade->lamp_id, &rgb, true);
+        struct RGBi rgb = rgbf_to_i(oklab_to_rgb(fade->current_color));
+        rgb_tuple_t t = {
+            rgb.r,
+            rgb.g,
+            rgb.b,
+            0x01,
+        };
+        ctrl_update_lamp(ctrl, fade->lamp_id, &t, true);
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {

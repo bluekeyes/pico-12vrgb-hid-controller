@@ -10,7 +10,6 @@
 
 // TODO(bkeyes): refactor this
 //
-//   - put color types and conversions in new header (color.h)
 //   - rename this to lamp.h
 //     - it should contain stuff about individual lamps
 //     - rename types as needed
@@ -23,21 +22,11 @@ typedef struct __attribute__ ((packed)) {
     uint8_t i;
 } rgb_tuple_t;
 
-// rgb_oklab_t contains an Oklab tuple, used for color transformations.
-typedef struct {
-    float L;
-    float a;
-    float b;
-} rgb_oklab_t;
-
 extern const int32_t  rgb_lamp_positions[CFG_RGB_LAMP_COUNT][3];
 extern const uint16_t rgb_lamp_purposes[CFG_RGB_LAMP_COUNT];
 extern const uint8_t  rgb_lamp_gpios[CFG_RGB_LAMP_COUNT][3];
 
 void rgb_init();
 void rgb_set_lamp_color(uint8_t lamp_id, rgb_tuple_t const *tuple);
-
-rgb_oklab_t rgb_to_oklab(rgb_tuple_t rgb);
-rgb_tuple_t rgb_from_oklab(rgb_oklab_t lab);
 
 #endif // RGB_RGB_H_
