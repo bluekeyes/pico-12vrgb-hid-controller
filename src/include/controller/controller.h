@@ -5,6 +5,8 @@
 #include "hid/lights/report.h"
 #include "rgb/rgb.h"
 
+typedef struct Controller controller_t;
+
 // -----
 // Lamps
 // -----
@@ -30,14 +32,13 @@ struct AnimationState {
     void *data;             /* arbitrary data used by the frame callback */
 };
 
-struct Controller; /* forward-declared to enable recursive reference */
-typedef uint8_t (*FrameCallback)(struct Controller *ctrl, struct AnimationState *state);
+typedef uint8_t (*FrameCallback)(controller_t *ctrl, struct AnimationState *state);
 
 // ----------
 // Controller
 // ----------
 
-typedef struct Controller {
+struct Controller {
     bool is_autonomous;
     rgb_lamp_id_t next_lamp_id;
 
@@ -47,7 +48,7 @@ typedef struct Controller {
     struct AnimationState animation;
     FrameCallback frame_cb;
     uint32_t last_frame_time_us;
-} controller_t;
+};
 
 void ctrl_init(controller_t *ctrl);
 void ctrl_task(controller_t *ctrl);

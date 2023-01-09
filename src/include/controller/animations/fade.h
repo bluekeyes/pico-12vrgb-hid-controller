@@ -28,7 +28,7 @@ struct AnimationFade anim_fade_get_defaults();
 void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets, uint8_t count);
 void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us);
 void anim_fade_set_hold_time(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time_us);
-uint8_t anim_fade(struct Controller *ctrl, struct AnimationState *state);
+uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state);
 
 /**
  * Shortcuts for specific types of fade effect

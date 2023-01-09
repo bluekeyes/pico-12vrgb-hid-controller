@@ -88,7 +88,7 @@ static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_
     }
 }
 
-uint8_t anim_fade(struct Controller *ctrl, struct AnimationState *state)
+uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state)
 {
     struct AnimationFade *fade = (struct AnimationFade *) state->data;
 
