@@ -33,5 +33,6 @@ uint8_t anim_fade(struct Controller *ctrl, struct AnimationState *state);
  */
 
 struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us);
+struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uint32_t fade_time_us);
 
 #endif /* CONTROLLER_ANIMATIONS_FADE_H_ */

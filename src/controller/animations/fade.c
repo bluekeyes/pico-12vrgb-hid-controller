@@ -36,6 +36,21 @@ struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us)
     return fade;
 }
 
+struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uint32_t fade_time_us)
+{
+    rgb_oklab_t targets[] = {
+        rgb_to_oklab(color1),
+        rgb_to_oklab(color2),
+    };
+
+    struct AnimationFade fade = anim_fade_get_defaults();
+    anim_fade_set_targets(&fade, targets);
+    anim_fade_set_fade_time(&fade, fade_time_us);
+    anim_fade_set_hold_time(&fade, 0, fade_time_us/8);
+    anim_fade_set_hold_time(&fade, 1, fade_time_us/8);
+    return fade;
+}
+
 void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets)
 {
     memcpy(fade->targets, targets, sizeof(fade->targets));
