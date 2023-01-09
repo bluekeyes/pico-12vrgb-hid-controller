@@ -18,7 +18,7 @@ const uint8_t rgb_lamp_gpios[CFG_RGB_LAMP_COUNT][3] = {
     CFG_RGB_LAMP_GPIO_MAPPING
 };
 
-static inline uint16_t rgb_get_pwm_level(rgb_level_t level)
+static inline uint16_t rgb_get_pwm_level(uint8_t level)
 {
     // squaring a value is a simple approximation for gamma corection
     return ((uint16_t) level) * ((uint16_t) level);
@@ -47,7 +47,7 @@ void rgb_init()
     pwm_set_mask_enabled(slice_mask);
 }
 
-void rgb_set_lamp_color(rgb_lamp_id_t lamp_id, rgb_tuple_t const *tuple)
+void rgb_set_lamp_color(uint8_t lamp_id, rgb_tuple_t const *tuple)
 {
     if (lamp_id > CFG_RGB_LAMP_COUNT - 1) {
         return;

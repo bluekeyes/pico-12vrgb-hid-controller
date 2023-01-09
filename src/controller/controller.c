@@ -66,7 +66,7 @@ void ctrl_task(controller_t *ctrl)
     }
 
     if (ctrl->do_update) {
-        for (rgb_lamp_id_t id = 0; id < CFG_RGB_LAMP_COUNT; id++) {
+        for (uint8_t id = 0; id < CFG_RGB_LAMP_COUNT; id++) {
             lamp_state *state = &ctrl->lamp_state[id];
             if (state->dirty) {
                 rgb_set_lamp_color(id, &state->next);
@@ -81,7 +81,7 @@ void ctrl_task(controller_t *ctrl)
 
 }
 
-void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, rgb_lamp_id_t lamp_id)
+void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id)
 {
     if (lamp_id > CFG_RGB_LAMP_COUNT - 1) {
         ctrl->next_lamp_id = 0;
@@ -94,7 +94,7 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_repor
 {
     // Advance the lamp ID to allow reading attributes for all lamps in
     // sequential reports without setting a new ID each time
-    rgb_lamp_id_t lamp_id = ctrl->next_lamp_id;
+    uint8_t lamp_id = ctrl->next_lamp_id;
     ctrl->next_lamp_id = (lamp_id + 1) % CFG_RGB_LAMP_COUNT;
 
     report->lamp_id = lamp_id;
@@ -131,7 +131,7 @@ void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data)
     ctrl->animation = get_initial_animation_state(data);
 }
 
-void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tuple, bool apply)
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, rgb_tuple_t *tuple, bool apply)
 {
     lamp_state *state = &ctrl->lamp_state[lamp_id];
     state->next = *tuple;

@@ -40,7 +40,7 @@ typedef uint8_t (*FrameCallback)(controller_t *ctrl, struct AnimationState *stat
 
 struct Controller {
     bool is_autonomous;
-    rgb_lamp_id_t next_lamp_id;
+    uint8_t next_lamp_id;
 
     bool do_update;
     lamp_state lamp_state[CFG_RGB_LAMP_COUNT];
@@ -53,14 +53,14 @@ struct Controller {
 void ctrl_init(controller_t *ctrl);
 void ctrl_task(controller_t *ctrl);
 
-void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, rgb_lamp_id_t lamp_id);
+void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id);
 void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_report_t *report);
 
 void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous);
 bool ctrl_get_autonomous_mode(controller_t *ctrl);
 void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data);
 
-void ctrl_update_lamp(controller_t *ctrl, rgb_lamp_id_t lamp_id, rgb_tuple_t *tuple, bool apply);
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, rgb_tuple_t *tuple, bool apply);
 void ctrl_apply_lamp_updates(controller_t *ctrl);
 
 #endif // CONTROLLER_CONTROLLER_H_
