@@ -3,11 +3,11 @@
 
 #include "hardware/timer.h"
 
-#include "config.h"
 #include "controller/controller.h"
+#include "device/lamp.h"
+#include "device/specs.h"
 #include "hid/data.h"
 #include "hid/lights/report.h"
-#include "rgb/rgb.h"
 
 static inline struct AnimationState get_initial_animation_state(void *data) {
     struct AnimationState state = {
@@ -66,13 +66,13 @@ void ctrl_task(controller_t *ctrl)
     }
 
     if (ctrl->do_update) {
-        for (uint8_t id = 0; id < CFG_RGB_LAMP_COUNT; id++) {
+        for (uint8_t id = 0; id < LAMP_COUNT; id++) {
             lamp_state *state = &ctrl->lamp_state[id];
             if (state->dirty) {
-                rgb_set_lamp_color(id, &state->next);
+                lamp_set_value(id, state->next);
 
                 state->current = state->next;
-                memset(&state->next, 0, sizeof(rgb_tuple_t));
+                memset(&state->next, 0, sizeof(struct LampValue));
                 state->dirty = false;
             }
         }
@@ -83,7 +83,7 @@ void ctrl_task(controller_t *ctrl)
 
 void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id)
 {
-    if (lamp_id > CFG_RGB_LAMP_COUNT - 1) {
+    if (lamp_id > MAX_LAMP_ID) {
         ctrl->next_lamp_id = 0;
     } else {
         ctrl->next_lamp_id = lamp_id;
@@ -95,21 +95,21 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_repor
     // Advance the lamp ID to allow reading attributes for all lamps in
     // sequential reports without setting a new ID each time
     uint8_t lamp_id = ctrl->next_lamp_id;
-    ctrl->next_lamp_id = (lamp_id + 1) % CFG_RGB_LAMP_COUNT;
+    ctrl->next_lamp_id = (lamp_id + 1) % LAMP_COUNT;
 
     report->lamp_id = lamp_id;
-    report->lamp_purpose = rgb_lamp_purposes[lamp_id];
+    report->lamp_purpose = lamp_purposes[lamp_id];
 
     HID_SET_FLAG(report->is_programmable);
 
-    report->position_x = rgb_lamp_positions[lamp_id][0];
-    report->position_y = rgb_lamp_positions[lamp_id][1];
-    report->position_z = rgb_lamp_positions[lamp_id][2];
+    report->position_x = lamp_positions[lamp_id][0];
+    report->position_y = lamp_positions[lamp_id][1];
+    report->position_z = lamp_positions[lamp_id][2];
 
-    report->red_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->green_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->blue_level_count = RGB_COLOR_LEVEL_COUNT;
-    report->intensity_level_count = RGB_INTENSITY_LEVEL_COUNT;
+    report->red_level_count = LAMP_COLOR_LEVELS;
+    report->green_level_count = LAMP_COLOR_LEVELS;
+    report->blue_level_count = LAMP_COLOR_LEVELS;
+    report->intensity_level_count = LAMP_INTENSITY_LEVELS;
 
     report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
     report->input_binding = 0x0000;
@@ -131,10 +131,10 @@ void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data)
     ctrl->animation = get_initial_animation_state(data);
 }
 
-void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, rgb_tuple_t *tuple, bool apply)
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply)
 {
     lamp_state *state = &ctrl->lamp_state[lamp_id];
-    state->next = *tuple;
+    state->next = value;
     state->dirty = true;
 
     if (apply) {

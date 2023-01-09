@@ -4,7 +4,7 @@
 #include "pico/unique_id.h"
 #include "tusb.h"
 
-#include "config.h"
+#include "device/specs.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/vendor/report.h"

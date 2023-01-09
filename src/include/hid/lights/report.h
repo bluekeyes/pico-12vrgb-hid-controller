@@ -15,13 +15,14 @@
 
 #include "tusb.h"
 
+#include "device/specs.h"
 #include "hid/descriptor.h"
 #include "hid/lights/usage.h"
 
-#ifdef CFG_RGB_MULTI_UPDATE_SIZE
-    #define LAMP_MULTI_UPDATE_BATCH_SIZE CFG_RGB_MULTI_UPDATE_SIZE
+#if LAMP_COUNT <= 8
+    #define LAMP_MULTI_UPDATE_BATCH_SIZE LAMP_COUNT
 #else
-    #define LAMP_MULTI_UPDATE_BATCH_SIZE 4
+    #define LAMP_MULTI_UPDATE_BATCH_SIZE 8
 #endif
 
 #define HID_COLLECTION_LAMP_ARRAY \

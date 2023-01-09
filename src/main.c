@@ -4,14 +4,14 @@
 #include "color/color.h"
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
-#include "rgb/rgb.h"
+#include "device/lamp.h"
 
 controller_t ctrl;
 
 int main()
 {
     ctrl_init(&ctrl);
-    rgb_init();
+    lamp_init();
     tusb_init();
 
     // struct RGBi color = {0x00, 0xdb, 0xa8};

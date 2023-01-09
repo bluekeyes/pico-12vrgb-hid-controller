@@ -26,14 +26,15 @@ target_sources(rgb_controller PRIVATE
   src/color/color.c
   src/controller/animations/fade.c
   src/controller/controller.c
+  src/device/lamp.c
   src/main.c
-  src/rgb/rgb.c
   src/usb_descriptors.c
   src/usb_hid.c
 )
 
 target_include_directories(rgb_controller PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/src/include
+  ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
 pico_enable_stdio_uart(rgb_controller 1)

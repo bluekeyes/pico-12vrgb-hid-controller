@@ -7,11 +7,6 @@
 // version and N is the patch version.
 #define CFG_RGB_DEVICE_VERSION 0x0010
 
-// The number of individually addressable lamps / RGB channels
-//
-// Range: [1, 256]
-#define CFG_RGB_LAMP_COUNT 2
-
 // The number of lamps that can be updated in a single LampMultiUpdateReport
 //
 // Range: [1, 8]
@@ -26,16 +21,16 @@
 #define CFG_RGB_BOUNDING_BOX_DEPTH  0
 
 // Lamp positions as (X, Y, Z) tuples relative to the bounding box origin. The
-// number of entries must equal CFG_RGB_LAMP_COUNT.
+// number of entries must equal LAMP_COUNT (device/specs.h).
 //
 // Units: Micrometers
 #define CFG_RGB_LAMP_POSITIONS \
     {0, 0, 0}, \
     {0, 0, 0},
 
-// Lamp purpose flags. The number of entries must equal CFG_RGB_LAMP_COUNT. The
-// following flags are allowed, see Section 25.3.1 in the HID Usage Table for
-// details:
+// Lamp purpose flags. The number of entries must equal LAMP_COUNT
+// (device/specs.h). The following flags are allowed, see Section 25.3.1 in the
+// HID Usage Table for details:
 //
 //     LAMP_PURPOSE_CONTROL        0x01
 //     LAMP_PURPOSE_ACCENT         0x02
@@ -49,9 +44,9 @@
     LAMP_PURPOSE_ACCENT,
 
 // Map lamp RGB channels to GPIOs as (R, G, B) tuples. The number of entries
-// must equal CFG_RGB_LAMP_COUNT. Each GPIO in the mapping must connect to a
-// unique PWM channel. For example, you may not use both GPIO 0 and GPIO 16
-// because they are both connected to PWM channel 0A.
+// must equal LAMP_COUNT (device/specs.h). Each GPIO in the mapping must
+// connect to a unique PWM channel. For example, you may not use both GPIO 0
+// and GPIO 16 because they are both connected to PWM channel 0A.
 //
 // The PCB routes these GPIOs so they appear on headers in G-R-B order. You can
 // change this in software by swapping the positions for a given lamp.  Other

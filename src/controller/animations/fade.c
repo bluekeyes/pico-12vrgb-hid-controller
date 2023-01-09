@@ -4,6 +4,7 @@
 #include "color/color.h"
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
+#include "device/lamp.h"
 
 struct AnimationFade anim_fade_get_defaults()
 {
@@ -120,13 +121,7 @@ uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state)
 
     if (is_dirty) {
         struct RGBi rgb = rgbf_to_i(oklab_to_rgb(fade->current_color));
-        rgb_tuple_t t = {
-            rgb.r,
-            rgb.g,
-            rgb.b,
-            0x01,
-        };
-        ctrl_update_lamp(ctrl, fade->lamp_id, &t, true);
+        ctrl_update_lamp(ctrl, fade->lamp_id, lamp_value_from_rgb(rgb), true);
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {

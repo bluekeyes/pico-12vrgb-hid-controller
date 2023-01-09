@@ -1,14 +1,14 @@
 #include "pico/bootrom.h"
 #include "tusb.h"
 
-#include "config.h"
 #include "controller/controller.h"
+#include "device/lamp.h"
+#include "device/specs.h"
 #include "hid/data.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/lights/usage.h"
 #include "hid/vendor/report.h"
-#include "rgb/rgb.h"
 
 extern controller_t ctrl;
 
@@ -19,7 +19,7 @@ static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqle
     }
 
     lamp_array_attributes_report_t *report = (lamp_array_attributes_report_t *) buffer;
-    report->lamp_count = CFG_RGB_LAMP_COUNT;
+    report->lamp_count = LAMP_COUNT;
     report->bounding_box_width = CFG_RGB_BOUNDING_BOX_WIDTH;
     report->bounding_box_height = CFG_RGB_BOUNDING_BOX_HEIGHT;
     report->bounding_box_depth = CFG_RGB_BOUNDING_BOX_DEPTH;
@@ -65,11 +65,11 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
 
     for (uint8_t i = 0; i < report->lamp_count; i++) {
         uint8_t id = report->lamp_ids[i];
-        if (id > CFG_RGB_LAMP_COUNT - 1) {
+        if (id > MAX_LAMP_ID) {
             return;
         }
         // TODO(bkeyes): per spec, need to check levels against allowed counts
-        ctrl_update_lamp(&ctrl, id, (rgb_tuple_t *) &report->rgbi_tuples[i], false);
+        ctrl_update_lamp(&ctrl, id, *((struct LampValue *) &report->rgbi_tuples[i]), false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
@@ -88,17 +88,17 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
 
     lamp_range_update_report_t *report = (lamp_range_update_report_t *) buffer;
 
-    if (report->lamp_id_start > CFG_RGB_LAMP_COUNT - 1 || report->lamp_id_end > CFG_RGB_LAMP_COUNT - 1) {
+    if (report->lamp_id_start > MAX_LAMP_ID || report->lamp_id_end > MAX_LAMP_ID) {
         return;
     }
     if (report->lamp_id_start > report->lamp_id_end) {
         return;
     }
 
-    rgb_tuple_t *tuple = (rgb_tuple_t *) report->rgbi_tuple;
+    struct LampValue value = *((struct LampValue *) report->rgbi_tuple);
     for (uint8_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
         // TODO(bkeyes): per spec, need to check levels against allowed counts
-        ctrl_update_lamp(&ctrl, id, tuple, false);
+        ctrl_update_lamp(&ctrl, id, value, false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {

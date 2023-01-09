@@ -1,9 +1,9 @@
 #ifndef CONTROLLER_CONTROLLER_H_
 #define CONTROLLER_CONTROLLER_H_
 
-#include "config.h"
+#include "device/lamp.h"
+#include "device/specs.h"
 #include "hid/lights/report.h"
-#include "rgb/rgb.h"
 
 typedef struct Controller controller_t;
 
@@ -12,8 +12,8 @@ typedef struct Controller controller_t;
 // -----
 
 typedef struct {
-    rgb_tuple_t current;
-    rgb_tuple_t next;
+    struct LampValue current;
+    struct LampValue next;
     bool dirty;
 } lamp_state;
 
@@ -43,7 +43,7 @@ struct Controller {
     uint8_t next_lamp_id;
 
     bool do_update;
-    lamp_state lamp_state[CFG_RGB_LAMP_COUNT];
+    lamp_state lamp_state[LAMP_COUNT];
 
     struct AnimationState animation;
     FrameCallback frame_cb;
@@ -60,7 +60,7 @@ void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous);
 bool ctrl_get_autonomous_mode(controller_t *ctrl);
 void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data);
 
-void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, rgb_tuple_t *tuple, bool apply);
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply);
 void ctrl_apply_lamp_updates(controller_t *ctrl);
 
 #endif // CONTROLLER_CONTROLLER_H_
