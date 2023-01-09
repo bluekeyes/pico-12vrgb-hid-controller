@@ -14,22 +14,28 @@ struct AnimationFade anim_fade_get_defaults()
 
     struct AnimationFade fade;
     fade.lamp_id = 0; // TODO(bkeyes): figure out how multi-channel animations work
-    anim_fade_set_targets(&fade, targets);
+
+    memset(fade.targets, 0, sizeof(fade.targets));
+    anim_fade_set_targets(&fade, targets, 2);
+
     anim_fade_set_fade_time(&fade, 1000000);
+
+    memset(fade.hold_frames, 0, sizeof(fade.hold_frames));
     anim_fade_set_hold_time(&fade, 0, 250000);
     anim_fade_set_hold_time(&fade, 1, 1000000);
+
     return fade;
 }
 
 struct AnimationFade anim_fade_breathe(rgb_tuple_t color, uint32_t fade_time_us)
 {
-    rgb_oklab_t targets[FADE_TARGETS];
+    rgb_oklab_t targets[2];
     targets[0] = rgb_to_oklab(color);
     targets[1] = targets[0];
     targets[1].L = 0.f;
 
     struct AnimationFade fade = anim_fade_get_defaults();
-    anim_fade_set_targets(&fade, targets);
+    anim_fade_set_targets(&fade, targets, 2);
     anim_fade_set_fade_time(&fade, fade_time_us);
     anim_fade_set_hold_time(&fade, 0, fade_time_us/8);
     anim_fade_set_hold_time(&fade, 1, fade_time_us/2);
@@ -44,17 +50,20 @@ struct AnimationFade anim_fade_cross(rgb_tuple_t color1, rgb_tuple_t color2, uin
     };
 
     struct AnimationFade fade = anim_fade_get_defaults();
-    anim_fade_set_targets(&fade, targets);
+    anim_fade_set_targets(&fade, targets, 2);
     anim_fade_set_fade_time(&fade, fade_time_us);
     anim_fade_set_hold_time(&fade, 0, fade_time_us/8);
     anim_fade_set_hold_time(&fade, 1, fade_time_us/8);
     return fade;
 }
 
-void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets)
+void anim_fade_set_targets(struct AnimationFade *fade, rgb_oklab_t *targets, uint8_t count)
 {
-    memcpy(fade->targets, targets, sizeof(fade->targets));
-    fade->current_color = targets[FADE_TARGETS - 1];
+    count = count > MAX_FADE_TARGETS ? MAX_FADE_TARGETS : count;
+
+    memcpy(fade->targets, targets, count * sizeof(rgb_oklab_t));
+    fade->target_count = count;
+    fade->current_color = targets[count - 1];
 }
 
 void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us)
@@ -64,7 +73,7 @@ void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us)
 
 void anim_fade_set_hold_time(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time_us)
 {
-    if (stage > FADE_TARGETS - 1) {
+    if (stage > MAX_FADE_TARGETS - 1) {
         return;
     }
     fade->hold_frames[stage] = hold_time_us / ANIM_FRAME_TIME_US;
@@ -99,7 +108,7 @@ uint8_t anim_fade(struct Controller *ctrl, struct AnimationState *state)
     } else {
         if (state->stage_frame == 0) {
             // starting a new fade stage, initialize fade diffs
-            anim_fade_set_diffs(fade, target, target == 0 ? FADE_TARGETS - 1 : (target - 1));
+            anim_fade_set_diffs(fade, target, target == 0 ? fade->target_count - 1 : (target - 1));
         }
         stage_frames = fade->fade_frames;
 
@@ -115,7 +124,7 @@ uint8_t anim_fade(struct Controller *ctrl, struct AnimationState *state)
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {
-        return (state->stage + 1) % (2*FADE_TARGETS);
+        return (state->stage + 1) % (2 * fade->target_count);
     }
     return state->stage;
 }
