@@ -90,7 +90,7 @@ void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id)
     }
 }
 
-void ctrl_get_lamp_attributes(controller_t *ctrl, lamp_attributes_response_report_t *report)
+void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseReport *report)
 {
     // Advance the lamp ID to allow reading attributes for all lamps in
     // sequential reports without setting a new ID each time

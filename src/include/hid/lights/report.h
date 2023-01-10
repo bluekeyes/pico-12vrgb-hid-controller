@@ -55,14 +55,14 @@
       HID_ITEM_UINT8    (INPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampArrayAttributesReport {
     uint16_t lamp_count;
     int32_t  bounding_box_width;
     int32_t  bounding_box_height;
     int32_t  bounding_box_depth;
     int32_t  min_update_interval;
     uint8_t  lamp_kind;
-} lamp_array_attributes_report_t;
+};
 
 // ---------------------------
 // LampAttributesRequestReport
@@ -77,9 +77,9 @@ typedef struct __attribute__ ((packed)) {
         HID_ITEM_UINT8    (OUTPUT, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampAttributesRequestReport {
     uint8_t lamp_id;
-} lamp_attributes_request_report_t;
+};
 
 // ----------------------------
 // LampAttributesResponseReport
@@ -122,7 +122,7 @@ typedef struct __attribute__ ((packed)) {
         HID_ITEM_UINT16   (INPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampAttributesResponseReport {
     uint8_t  lamp_id;
     int32_t  position_x;
     int32_t  position_y;
@@ -135,7 +135,7 @@ typedef struct __attribute__ ((packed)) {
     uint8_t  intensity_level_count;
     uint8_t  is_programmable;
     uint16_t input_binding;
-} lamp_attributes_response_report_t;
+};
 
 // ---------------------
 // LampMultiUpdateReport
@@ -167,12 +167,12 @@ typedef struct __attribute__ ((packed)) {
         HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampMultiUpdateReport {
     uint8_t  lamp_count;
     uint8_t  lamp_ids[LAMP_MULTI_UPDATE_BATCH_SIZE];
     uint8_t  rgbi_tuples[LAMP_MULTI_UPDATE_BATCH_SIZE][4];
     uint16_t update_flags;
-} lamp_multi_update_report_t;
+};
 
 // ---------------------
 // LampRangeUpdateReport
@@ -196,12 +196,12 @@ typedef struct __attribute__ ((packed)) {
         HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampRangeUpdateReport {
     uint8_t  lamp_id_start;
     uint8_t  lamp_id_end;
     uint8_t  rgbi_tuple[4];
     uint16_t update_flags;
-} lamp_range_update_report_t;
+};
 
 // ----------------------
 // LampArrayControlReport
@@ -222,8 +222,8 @@ typedef struct __attribute__ ((packed)) {
         HID_OUTPUT        (HID_CONSTANT), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) LampArrayControlReport {
     uint8_t autonomous_mode;
-} lamp_array_control_report_t;
+};
 
-#endif // HID_LIGHTS_REPORT_H_
+#endif /* HID_LIGHTS_REPORT_H_ */

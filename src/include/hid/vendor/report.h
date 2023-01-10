@@ -42,8 +42,8 @@
         HID_OUTPUT        (HID_CONSTANT), \
     HID_COLLECTION_END
 
-typedef struct __attribute__ ((packed)) {
+struct __attribute__ ((packed)) Vendor12VRGBBootSelReport {
     uint8_t bootsel_restart;
-} vendor_12vrgb_bootsel_report_t;
+};
 
-#endif // HID_VENDOR_REPORT_H_
+#endif /* HID_VENDOR_REPORT_H_ */

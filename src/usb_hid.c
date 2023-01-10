@@ -14,11 +14,11 @@ extern controller_t ctrl;
 
 static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqlen)
 {
-    if (reqlen < sizeof(lamp_array_attributes_report_t)) {
+    if (reqlen < sizeof(struct LampArrayAttributesReport)) {
         return 0;
     }
 
-    lamp_array_attributes_report_t *report = (lamp_array_attributes_report_t *) buffer;
+    struct LampArrayAttributesReport *report = (struct LampArrayAttributesReport *) buffer;
     report->lamp_count = LAMP_COUNT;
     report->bounding_box_width = CFG_RGB_BOUNDING_BOX_WIDTH;
     report->bounding_box_height = CFG_RGB_BOUNDING_BOX_HEIGHT;
@@ -26,38 +26,41 @@ static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqle
     report->min_update_interval = CFG_RGB_MINIMUM_UPDATE_INTERVAL;
     report->lamp_kind = LAMP_ARRAY_KIND_CHASSIS;
 
-    return sizeof(report);
+    return sizeof(struct LampArrayAttributesReport);
 }
 
 static uint16_t get_report_lamp_attributes_response(uint8_t *buffer, uint16_t reqlen)
 {
-    if (reqlen < sizeof(lamp_attributes_response_report_t)) {
+    if (reqlen < sizeof(struct LampAttributesResponseReport)) {
         return 0;
     }
-    ctrl_get_lamp_attributes(&ctrl, (lamp_attributes_response_report_t *) buffer);
-    return sizeof(lamp_attributes_response_report_t);
+
+    struct LampAttributesResponseReport *report = (struct LampAttributesResponseReport *) buffer;
+    ctrl_get_lamp_attributes(&ctrl, report);
+
+    return sizeof(struct LampAttributesResponseReport);
 }
 
 static void set_report_lamp_attributes_request(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(lamp_attributes_request_report_t)) {
+    if (bufsize < sizeof(struct LampAttributesRequestReport)) {
         return;
     }
 
-    lamp_attributes_request_report_t *report = (lamp_attributes_request_report_t *) buffer;
+    struct LampAttributesRequestReport *report = (struct LampAttributesRequestReport *) buffer;
     ctrl_set_next_lamp_attributes_id(&ctrl, report->lamp_id);
 }
 
 static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(lamp_multi_update_report_t)) {
+    if (bufsize < sizeof(struct LampMultiUpdateReport)) {
         return;
     }
     if (ctrl_get_autonomous_mode(&ctrl)) {
         return;
     }
 
-    lamp_multi_update_report_t *report = (lamp_multi_update_report_t *) buffer;
+    struct LampMultiUpdateReport *report = (struct LampMultiUpdateReport *) buffer;
 
     if (report->lamp_count > LAMP_MULTI_UPDATE_BATCH_SIZE) {
         return;
@@ -79,14 +82,14 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
 
 static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(lamp_range_update_report_t)) {
+    if (bufsize < sizeof(struct LampRangeUpdateReport)) {
         return;
     }
     if (ctrl_get_autonomous_mode(&ctrl)) {
         return;
     }
 
-    lamp_range_update_report_t *report = (lamp_range_update_report_t *) buffer;
+    struct LampRangeUpdateReport *report = (struct LampRangeUpdateReport *) buffer;
 
     if (report->lamp_id_start > MAX_LAMP_ID || report->lamp_id_end > MAX_LAMP_ID) {
         return;
@@ -108,21 +111,21 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
 
 static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(lamp_array_control_report_t)) {
+    if (bufsize < sizeof(struct LampArrayControlReport)) {
         return;
     }
 
-    lamp_array_control_report_t *report = (lamp_array_control_report_t *) buffer;
+    struct LampArrayControlReport *report = (struct LampArrayControlReport *) buffer;
     ctrl_set_autonomous_mode(&ctrl, HID_GET_FLAG(report->autonomous_mode) != 0);
 }
 
 static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(vendor_12vrgb_bootsel_report_t)) {
+    if (bufsize < sizeof(struct Vendor12VRGBBootSelReport)) {
         return;
     }
 
-    vendor_12vrgb_bootsel_report_t *report = (vendor_12vrgb_bootsel_report_t *) buffer;
+    struct Vendor12VRGBBootSelReport *report = (struct Vendor12VRGBBootSelReport *) buffer;
 
     if (HID_GET_FLAG(report->bootsel_restart) > 0) {
         reset_usb_boot(0, 0);
