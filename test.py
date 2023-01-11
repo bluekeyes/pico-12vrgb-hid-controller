@@ -55,10 +55,11 @@ def update_lamp0(r, g, b):
     ]))
 
 
-def set_fade_animation(fade_time, hold_time, colors):
+def set_fade_animation_lamp0(fade_time, hold_time, colors):
     d = find_vendor_device()
     data = bytearray([
         0x08, # report id
+        0x00, # lamp id
         0x02, # animation type
     ])
 
@@ -77,10 +78,11 @@ def set_fade_animation(fade_time, hold_time, colors):
     write_output_report(d, data)
 
 
-def set_breathe_animation(fade_time, color):
+def set_breathe_animation_lamp0(fade_time, color):
     d = find_vendor_device()
     data = bytearray([
         0x08, # report id
+        0x00, # lamp id
         0x01, # animation type
     ])
 
@@ -98,10 +100,11 @@ def set_breathe_animation(fade_time, color):
     write_output_report(d, data)
 
 
-def set_none_animation():
+def set_none_animation_lamp0():
     d = find_vendor_device()
     data = bytearray([
         0x08, # report id
+        0x00, # lamp id
         0x00, # animation type
     ])
     data.extend(b'\00' * 40)

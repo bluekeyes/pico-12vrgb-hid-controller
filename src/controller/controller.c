@@ -12,8 +12,8 @@
 
 static inline struct AnimationState get_initial_animation_state(void *data) {
     struct AnimationState state = {
-        .frame = 0,
         .stage = 0,
+        .frame = 0,
         .stage_frame = 0,
         .data = data,
     };
@@ -28,14 +28,44 @@ void ctrl_init(controller_t *ctrl)
     ctrl->do_update = false;
     memset(ctrl->lamp_state, 0, sizeof(ctrl->lamp_state));
 
-    ctrl->animation = get_initial_animation_state(NULL);
-    ctrl->frame_cb = NULL;
+    for (uint8_t i = 0; i < LAMP_COUNT; i++) {
+        ctrl->animation[i] = get_initial_animation_state(NULL);
+        ctrl->frame_cb[i] = NULL;
+    }
     ctrl->last_frame_time_us = 0;
+}
+
+/**
+ * @brief Processes a single frame of animation for a lamp.
+ */
+static void ctrl_animation_frame(controller_t *ctrl, uint8_t lamp_id)
+{
+    struct AnimationState *state = &ctrl->animation[lamp_id];
+
+    FrameCallback frame_cb = ctrl->frame_cb[lamp_id];
+    if (frame_cb == NULL) {
+        return;
+    }
+
+    uint8_t next_stage = frame_cb(ctrl, lamp_id, state);
+
+    state->frame++;
+    state->stage_frame++;
+
+    if (state->stage != next_stage) {
+        state->stage = next_stage;
+        state->stage_frame = 0;
+
+        // returning to stage 0 resets the full animation
+        if (next_stage == 0) {
+            state->frame = 0;
+        }
+    }
 }
 
 void ctrl_task(controller_t *ctrl)
 {
-    if (ctrl->is_autonomous && ctrl->frame_cb != NULL) {
+    if (ctrl->is_autonomous) {
         uint32_t last = ctrl->last_frame_time_us;
         uint32_t now = time_us_32();
 
@@ -47,20 +77,8 @@ void ctrl_task(controller_t *ctrl)
         }
 
         if (elapsed >= ANIM_FRAME_TIME_US) {
-            struct AnimationState *state = &ctrl->animation;
-            uint8_t next_stage = ctrl->frame_cb(ctrl, state);
-
-            state->frame++;
-            state->stage_frame++;
-
-            if (state->stage != next_stage) {
-                state->stage = next_stage;
-                state->stage_frame = 0;
-
-                // returning to stage 0 resets the full animation
-                if (next_stage == 0) {
-                    state->frame = 0;
-                }
+            for (uint8_t id = 0; id < LAMP_COUNT; id++) {
+                ctrl_animation_frame(ctrl, id);
             }
             ctrl->last_frame_time_us = now;
         }
@@ -79,7 +97,6 @@ void ctrl_task(controller_t *ctrl)
         }
         ctrl->do_update = false;
     }
-
 }
 
 void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id)
@@ -126,15 +143,15 @@ bool ctrl_get_autonomous_mode(controller_t *ctrl)
     return ctrl->is_autonomous;
 }
 
-void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data)
+void ctrl_set_animation(controller_t *ctrl, uint8_t lamp_id, FrameCallback frame_cb, void *data)
 {
-    void *old_data = ctrl->animation.data;
+    void *old_data = ctrl->animation[lamp_id].data;
     if (old_data != NULL) {
         free(old_data);
     }
 
-    ctrl->frame_cb = frame_cb;
-    ctrl->animation = get_initial_animation_state(data);
+    ctrl->frame_cb[lamp_id] = frame_cb;
+    ctrl->animation[lamp_id] = get_initial_animation_state(data);
 }
 
 void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply)

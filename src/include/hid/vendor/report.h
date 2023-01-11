@@ -57,6 +57,9 @@ struct __attribute__ ((packed)) Vendor12VRGBBootSelReport {
     HID_REPORT_ID   (REPORT_ID) \
     HID_USAGE       (REPORT_USAGE), \
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
+        /* Lamp ID */ \
+        HID_USAGE       (HID_USAGE_VENDOR_12VRGB_LAMP_ID), \
+        HID_ITEM_UINT8  (REPORT_TYPE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* Animation Type */ \
         HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_TYPE), \
         HID_ITEM_UINT8  (REPORT_TYPE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
@@ -81,6 +84,7 @@ struct __attribute__ ((packed)) Vendor12VRGBBootSelReport {
     HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, FEATURE, HID_USAGE_VENDOR_12VRGB_DEFAULT_ANIMATION_REPORT)
 
 struct __attribute__ ((packed)) Vendor12VRGBAnimationReport {
+    uint8_t lamp_id;
     uint8_t type;
     int32_t parameters[ANIMATION_REPORT_MAX_PARAMS];
     uint8_t colors[ANIMATION_REPORT_MAX_COLORS][3];

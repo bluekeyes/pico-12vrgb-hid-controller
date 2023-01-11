@@ -147,7 +147,7 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
     // TODO(bkeyes): document animation parameters somewhere
     switch (report->type) {
         case ANIMATION_TYPE_NONE: {
-            ctrl_set_animation(&ctrl, NULL, NULL);
+            ctrl_set_animation(&ctrl, report->lamp_id, NULL, NULL);
             break;
         }
 
@@ -155,7 +155,7 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
             uint32_t fade_time = (uint32_t) report->parameters[0];
             struct RGBi color = *((struct RGBi *) report->colors[0]);
 
-            ctrl_set_animation(&ctrl, anim_fade, anim_fade_new_breathe(color, fade_time));
+            ctrl_set_animation(&ctrl, report->lamp_id, anim_fade, anim_fade_new_breathe(color, fade_time));
             break;
         }
 
@@ -184,7 +184,7 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
                 anim_fade_set_hold_time(fade, i, hold_time);
             }
 
-            ctrl_set_animation(&ctrl, anim_fade, fade);
+            ctrl_set_animation(&ctrl, report->lamp_id, anim_fade, fade);
             break;
         }
     }

@@ -17,7 +17,6 @@ struct AnimationFade *anim_fade_new_empty()
     memset(fade->targets, 0, sizeof(fade->targets));
     memset(fade->hold_frames, 0, sizeof(fade->hold_frames));
 
-    fade->lamp_id = 0; // TODO(bkeyes): figure out how multi-channel animations work
     fade->target_count = 2;
     anim_fade_set_fade_time(fade, 1000000);
 
@@ -95,7 +94,7 @@ static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_
     }
 }
 
-uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state)
+uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *state)
 {
     struct AnimationFade *fade = (struct AnimationFade *) state->data;
 
@@ -127,7 +126,7 @@ uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state)
 
     if (is_dirty) {
         struct RGBi rgb = rgbf_to_i(oklab_to_rgb(fade->current_color));
-        ctrl_update_lamp(ctrl, fade->lamp_id, lamp_value_from_rgb(rgb), true);
+        ctrl_update_lamp(ctrl, lamp_id, lamp_value_from_rgb(rgb), true);
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {

@@ -9,8 +9,6 @@
 #define MAX_FADE_TARGETS 8
 
 struct AnimationFade {
-    uint8_t lamp_id;
-
     struct Labf current_color;
 
     uint8_t target_count;
@@ -35,7 +33,8 @@ struct AnimationFade *anim_fade_new_empty();
 void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uint8_t count);
 void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us);
 void anim_fade_set_hold_time(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time_us);
-uint8_t anim_fade(controller_t *ctrl, struct AnimationState *state);
+
+uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *state);
 
 /**
  * Shortcuts for specific types of fade effect

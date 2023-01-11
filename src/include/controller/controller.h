@@ -24,15 +24,14 @@ typedef struct {
 #define ANIM_FRAME_TIME_US (1000000 / CFG_RGB_ANIMATION_FRAME_RATE)
 
 struct AnimationState {
-    uint32_t frame;         /* the current frame in the animation */
-
     uint8_t  stage;         /* the current stage of the animation, as set by the frame callback */
+    uint32_t frame;         /* the current frame in the full animation */
     uint32_t stage_frame;   /* the current frame in the current stage; resets to 0 on stage change */
 
     void *data;             /* arbitrary data used by the frame callback */
 };
 
-typedef uint8_t (*FrameCallback)(controller_t *ctrl, struct AnimationState *state);
+typedef uint8_t (*FrameCallback)(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *state);
 
 // ----------
 // Controller
@@ -45,8 +44,8 @@ struct Controller {
     bool do_update;
     lamp_state lamp_state[LAMP_COUNT];
 
-    struct AnimationState animation;
-    FrameCallback frame_cb;
+    struct AnimationState animation[LAMP_COUNT];
+    FrameCallback frame_cb[LAMP_COUNT];
     uint32_t last_frame_time_us;
 };
 
@@ -69,7 +68,7 @@ bool ctrl_get_autonomous_mode(controller_t *ctrl);
  *
  * Set a null frame callback and null data to disable animations.
  */
-void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data);
+void ctrl_set_animation(controller_t *ctrl, uint8_t lamp_id, FrameCallback frame_cb, void *data);
 
 void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply);
 void ctrl_apply_lamp_updates(controller_t *ctrl);

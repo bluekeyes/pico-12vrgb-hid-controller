@@ -20,7 +20,7 @@ int main()
     struct RGBi color2 = {0xde, 0x8e, 0x0d};
     struct AnimationFade *fade = anim_fade_new_cross(color1, color2, 4000000);
 
-    ctrl_set_animation(&ctrl, anim_fade, (void *) fade);
+    ctrl_set_animation(&ctrl, 0, anim_fade, (void *) fade);
 
     while (true) {
         ctrl_task(&ctrl);
