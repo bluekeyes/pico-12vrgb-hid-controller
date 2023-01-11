@@ -18,9 +18,9 @@ int main()
     // struct AnimationFade fade = anim_fade_breathe(color, 2000000);
     struct RGBi color1 = {0x0a, 0xbf, 0xa1};
     struct RGBi color2 = {0xde, 0x8e, 0x0d};
-    struct AnimationFade fade = anim_fade_cross(color1, color2, 4000000);
+    struct AnimationFade *fade = anim_fade_new_cross(color1, color2, 4000000);
 
-    ctrl_set_animation(&ctrl, anim_fade, (void *) &fade);
+    ctrl_set_animation(&ctrl, anim_fade, (void *) fade);
 
     while (true) {
         ctrl_task(&ctrl);

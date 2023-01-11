@@ -58,6 +58,17 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseR
 
 void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous);
 bool ctrl_get_autonomous_mode(controller_t *ctrl);
+
+/**
+ * @brief Sets the animation that plays in autonomous mode.
+ *
+ * When starting an animation, the controller takes full ownership of the
+ * animation data. If the controller has an existing animation with non-null
+ * data, setting a new animation automatically frees the existing animation
+ * state. As a result, data must be allocated dynamically.
+ *
+ * Set a null frame callback and null data to disable animations.
+ */
 void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data);
 
 void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply);

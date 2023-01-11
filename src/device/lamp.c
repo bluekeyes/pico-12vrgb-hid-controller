@@ -56,9 +56,9 @@ void lamp_set_value(uint8_t lamp_id, struct LampValue value)
     uint8_t bp = lamp_gpios[lamp_id][2];
 
     if (value.i > 0) {
-        pwm_set_gpio_level(rp, get_pwm_level(value.r));
-        pwm_set_gpio_level(gp, get_pwm_level(value.g));
-        pwm_set_gpio_level(bp, get_pwm_level(value.b));
+        pwm_set_gpio_level(rp, get_pwm_level(value.rgb.r));
+        pwm_set_gpio_level(gp, get_pwm_level(value.rgb.g));
+        pwm_set_gpio_level(bp, get_pwm_level(value.rgb.b));
     } else {
         pwm_set_gpio_level(rp, 0);
         pwm_set_gpio_level(gp, 0);

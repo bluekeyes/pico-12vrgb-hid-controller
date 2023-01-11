@@ -22,14 +22,14 @@
 
 // Adds COUNT uint8 items of TYPE to the report with FLAGS
 #define HID_ITEM_UINT8(TYPE, COUNT, FLAGS)  \
-    HID_LOGICAL_MAX_N   (UINT8_MAX, 1),     \
+    HID_LOGICAL_MAX_N   (UINT8_MAX, 2),     \
     HID_REPORT_SIZE     (8),                \
     HID_REPORT_COUNT    (COUNT),            \
     HID_##TYPE          (FLAGS)
 
 // Adds COUNT uint16 items of TYPE to the report with FLAGS
 #define HID_ITEM_UINT16(TYPE, COUNT, FLAGS) \
-    HID_LOGICAL_MAX_N   (UINT16_MAX, 2),    \
+    HID_LOGICAL_MAX_N   (UINT16_MAX, 3),    \
     HID_REPORT_SIZE     (16),               \
     HID_REPORT_COUNT    (COUNT),            \
     HID_##TYPE          (FLAGS)
@@ -52,6 +52,8 @@ enum {
 
     // Vendor Reports
     HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL,
+    HID_REPORT_ID_VENDOR_12VRGB_ANIMATION,
+    HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION,
 };
 
 #endif // HID_DESCRIPTOR_H_

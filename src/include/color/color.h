@@ -4,16 +4,19 @@
 #include <stdint.h>
 
 /**
- * Represents a linear RGB color with integer channel values in [0, 255].
+ * @brief A linear RGB color with integer channel values in [0, 255].
+ *
+ * The struct is packed so that it can be directly mapped to array
+ * representations of RGB data.
  */
-struct RGBi {
+struct __attribute__ ((packed)) RGBi {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 };
 
 /**
- * Represents a linear RGB color with float channel values in [0.0, 1.0].
+ * @brief A linear RGB color with float channel values in [0.0, 1.0].
  */
 struct RGBf {
     float r;
@@ -25,7 +28,7 @@ struct RGBi rgbf_to_i(struct RGBf rgb);
 struct RGBf rgbi_to_f(struct RGBi rgb);
 
 /**
- * Represents an Oklab (or L*a*b*) color with float channel values.
+ * @brief An Oklab (or L*a*b*) color with float channel values.
  */
 struct Labf {
     float L;

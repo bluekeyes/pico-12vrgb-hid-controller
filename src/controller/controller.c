@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hardware/timer.h"
@@ -127,6 +128,11 @@ bool ctrl_get_autonomous_mode(controller_t *ctrl)
 
 void ctrl_set_animation(controller_t *ctrl, FrameCallback frame_cb, void *data)
 {
+    void *old_data = ctrl->animation.data;
+    if (old_data != NULL) {
+        free(old_data);
+    }
+
     ctrl->frame_cb = frame_cb;
     ctrl->animation = get_initial_animation_state(data);
 }

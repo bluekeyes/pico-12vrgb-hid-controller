@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "color/color.h"
@@ -6,55 +7,60 @@
 #include "controller/controller.h"
 #include "device/lamp.h"
 
-struct AnimationFade anim_fade_get_defaults()
+struct AnimationFade *anim_fade_new_empty()
 {
-    struct Labf targets[] = {
-        {0.f, 0.f, 0.f},
-        {1.f, 0.f, 0.f},
-    };
+    struct AnimationFade *fade = malloc(sizeof(struct AnimationFade));
+    if (fade == NULL) {
+        return NULL;
+    }
 
-    struct AnimationFade fade;
-    fade.lamp_id = 0; // TODO(bkeyes): figure out how multi-channel animations work
+    memset(fade->targets, 0, sizeof(fade->targets));
+    memset(fade->hold_frames, 0, sizeof(fade->hold_frames));
 
-    memset(fade.targets, 0, sizeof(fade.targets));
-    anim_fade_set_targets(&fade, targets, 2);
-
-    anim_fade_set_fade_time(&fade, 1000000);
-
-    memset(fade.hold_frames, 0, sizeof(fade.hold_frames));
-    anim_fade_set_hold_time(&fade, 0, 250000);
-    anim_fade_set_hold_time(&fade, 1, 1000000);
+    fade->lamp_id = 0; // TODO(bkeyes): figure out how multi-channel animations work
+    fade->target_count = 2;
+    anim_fade_set_fade_time(fade, 1000000);
 
     return fade;
 }
 
-struct AnimationFade anim_fade_breathe(struct RGBi color, uint32_t fade_time_us)
+struct AnimationFade *anim_fade_new_breathe(struct RGBi color, uint32_t fade_time_us)
 {
+    struct AnimationFade *fade = anim_fade_new_empty();
+    if (fade == NULL) {
+        return NULL;
+    }
+
     struct Labf targets[2];
     targets[0] = rgb_to_oklab(rgbi_to_f(color));
     targets[1] = targets[0];
     targets[1].L = 0.f;
 
-    struct AnimationFade fade = anim_fade_get_defaults();
-    anim_fade_set_targets(&fade, targets, 2);
-    anim_fade_set_fade_time(&fade, fade_time_us);
-    anim_fade_set_hold_time(&fade, 0, fade_time_us/8);
-    anim_fade_set_hold_time(&fade, 1, fade_time_us/2);
+    anim_fade_set_targets(fade, targets, 2);
+    anim_fade_set_fade_time(fade, fade_time_us);
+    anim_fade_set_hold_time(fade, 0, fade_time_us/8);
+    anim_fade_set_hold_time(fade, 1, fade_time_us/2);
+
     return fade;
 }
 
-struct AnimationFade anim_fade_cross(struct RGBi color1, struct RGBi color2, uint32_t fade_time_us)
+struct AnimationFade *anim_fade_new_cross(struct RGBi color1, struct RGBi color2, uint32_t fade_time_us)
 {
+    struct AnimationFade *fade = anim_fade_new_empty();
+    if (fade == NULL) {
+        return NULL;
+    }
+
     struct Labf targets[] = {
         rgb_to_oklab(rgbi_to_f(color1)),
         rgb_to_oklab(rgbi_to_f(color2)),
     };
 
-    struct AnimationFade fade = anim_fade_get_defaults();
-    anim_fade_set_targets(&fade, targets, 2);
-    anim_fade_set_fade_time(&fade, fade_time_us);
-    anim_fade_set_hold_time(&fade, 0, fade_time_us/8);
-    anim_fade_set_hold_time(&fade, 1, fade_time_us/8);
+    anim_fade_set_targets(fade, targets, 2);
+    anim_fade_set_fade_time(fade, fade_time_us);
+    anim_fade_set_hold_time(fade, 0, fade_time_us/8);
+    anim_fade_set_hold_time(fade, 1, fade_time_us/8);
+
     return fade;
 }
 

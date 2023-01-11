@@ -13,9 +13,7 @@
  * directly to the format used in HID reports to send lamp values.
  */
 struct __attribute__ ((packed)) LampValue {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    struct RGBi rgb;
     uint8_t i;
 };
 
@@ -29,9 +27,7 @@ void lamp_set_value(uint8_t lamp_id, struct LampValue value);
 static inline struct LampValue lamp_value_from_rgb(struct RGBi rgb)
 {
     struct LampValue value = {
-        .r = rgb.r,
-        .g = rgb.g,
-        .b = rgb.b,
+        .rgb = rgb,
         .i = 0x01,
     };
     return value;

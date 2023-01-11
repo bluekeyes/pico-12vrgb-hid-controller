@@ -1,6 +1,9 @@
+#include <stdlib.h>
+
 #include "pico/bootrom.h"
 #include "tusb.h"
 
+#include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "device/lamp.h"
 #include "device/specs.h"
@@ -9,6 +12,7 @@
 #include "hid/lights/report.h"
 #include "hid/lights/usage.h"
 #include "hid/vendor/report.h"
+#include "hid/vendor/usage.h"
 
 extern controller_t ctrl;
 
@@ -132,16 +136,81 @@ static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t buf
     }
 }
 
+static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t bufsize)
+{
+    if (bufsize < sizeof(struct Vendor12VRGBAnimationReport)) {
+        return;
+    }
+
+    struct Vendor12VRGBAnimationReport *report = (struct Vendor12VRGBAnimationReport *) buffer;
+
+    // TODO(bkeyes): document animation parameters somewhere
+    switch (report->type) {
+        case ANIMATION_TYPE_NONE: {
+            ctrl_set_animation(&ctrl, NULL, NULL);
+            break;
+        }
+
+        case ANIMATION_TYPE_BREATHE: {
+            uint32_t fade_time = (uint32_t) report->parameters[0];
+            struct RGBi color = *((struct RGBi *) report->colors[0]);
+
+            ctrl_set_animation(&ctrl, anim_fade, anim_fade_new_breathe(color, fade_time));
+            break;
+        }
+
+        case ANIMATION_TYPE_FADE: {
+            uint32_t color_count = (uint32_t) report->parameters[0];
+            if (color_count > ANIMATION_REPORT_MAX_COLORS) {
+                color_count = ANIMATION_REPORT_MAX_COLORS;
+            }
+            if (color_count > MAX_FADE_TARGETS) {
+                color_count = MAX_FADE_TARGETS;
+            }
+
+            uint32_t fade_time = (uint32_t) report->parameters[1];
+            uint32_t hold_time = (uint32_t) report->parameters[2];
+
+            struct Labf colors[MAX_FADE_TARGETS];
+            for (uint8_t i = 0; i < color_count; i++) {
+                struct RGBi color = *((struct RGBi *) report->colors[i]);
+                colors[i] = rgb_to_oklab(rgbi_to_f(color));
+            }
+
+            struct AnimationFade *fade = anim_fade_new_empty();
+            anim_fade_set_targets(fade, colors, color_count);
+            anim_fade_set_fade_time(fade, fade_time);
+            for (uint8_t i = 0; i < color_count; i++) {
+                anim_fade_set_hold_time(fade, i, hold_time);
+            }
+
+            ctrl_set_animation(&ctrl, anim_fade, fade);
+            break;
+        }
+    }
+}
+
+static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, uint16_t bufsize)
+{
+    if (bufsize < sizeof(struct Vendor12VRGBAnimationReport)) {
+        return;
+    }
+
+    struct Vendor12VRGBAnimationReport *report = (struct Vendor12VRGBAnimationReport *) buffer;
+
+    // TODO(bkeyes): implement this
+}
+
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
 {
     switch (report_id) {
-        case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
-            return get_report_lamp_array_attributes(buffer, reqlen);
-        case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
-            return get_report_lamp_attributes_response(buffer, reqlen);
+    case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
+        return get_report_lamp_array_attributes(buffer, reqlen);
+    case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
+        return get_report_lamp_attributes_response(buffer, reqlen);
     }
     return 0;
 }
@@ -150,21 +219,36 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
 {
-    switch (report_id) {
+    switch (report_type) {
+    case HID_REPORT_TYPE_OUTPUT:
+        switch (report_id) {
         case HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST:
             set_report_lamp_attributes_request(buffer, bufsize);
-            return;
+            break;
         case HID_REPORT_ID_LAMP_MULTI_UPDATE:
             set_report_lamp_multi_update(buffer, bufsize);
-            return;
+            break;
         case HID_REPORT_ID_LAMP_RANGE_UPDATE:
             set_report_lamp_range_update(buffer, bufsize);
-            return;
+            break;
         case HID_REPORT_ID_LAMP_ARRAY_CONTROL:
             set_report_lamp_array_control(buffer, bufsize);
-            return;
+            break;
         case HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL:
             set_report_vendor_12vrgb_bootsel(buffer, bufsize);
-            return;
+            break;
+        case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
+            set_report_vendor_12vrgb_animation(buffer, bufsize);
+            break;
+        }
+        return;
+
+    case HID_REPORT_TYPE_FEATURE:
+        switch (report_id) {
+        case HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION:
+            set_report_vendor_12vrgb_default_animation(buffer, bufsize);
+            break;
+        }
+        return;
     }
 }
