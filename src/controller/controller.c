@@ -4,6 +4,7 @@
 
 #include "hardware/timer.h"
 
+#include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "device/lamp.h"
 #include "device/specs.h"
@@ -133,6 +134,22 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseR
     report->input_binding = 0x0000;
 }
 
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply)
+{
+    lamp_state *state = &ctrl->lamp_state[lamp_id];
+    state->next = value;
+    state->dirty = true;
+
+    if (apply) {
+        ctrl->do_update = true;
+    }
+}
+
+void ctrl_apply_lamp_updates(controller_t *ctrl)
+{
+    ctrl->do_update = true;
+}
+
 void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous)
 {
     ctrl->is_autonomous = autonomous;
@@ -154,18 +171,62 @@ void ctrl_set_animation(controller_t *ctrl, uint8_t lamp_id, FrameCallback frame
     ctrl->animation[lamp_id] = get_initial_animation_state(data);
 }
 
-void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply)
-{
-    lamp_state *state = &ctrl->lamp_state[lamp_id];
-    state->next = value;
-    state->dirty = true;
+// --------------------------
+// Report-specific animations
+// --------------------------
 
-    if (apply) {
-        ctrl->do_update = true;
-    }
+static void set_animation_none(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
+{
+    ctrl_set_animation(ctrl, report->lamp_id, NULL, NULL);
 }
 
-void ctrl_apply_lamp_updates(controller_t *ctrl)
+static void set_animation_breath(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
 {
-    ctrl->do_update = true;
+    struct ReportParametersBreathe *params = (struct ReportParametersBreathe *) report->parameters;
+    struct AnimationFade *fade = anim_fade_new_breathe(params->color, params->fade_time);
+    ctrl_set_animation(ctrl, report->lamp_id, anim_fade, fade);
+}
+
+static void set_animation_fade(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
+{
+    struct ReportParametersFade *params = (struct ReportParametersFade *) report->parameters;
+
+    uint32_t color_count = params->color_count;
+    if (color_count > ANIMATION_REPORT_MAX_COLORS) {
+        color_count = ANIMATION_REPORT_MAX_COLORS;
+    }
+    if (color_count > MAX_FADE_TARGETS) {
+        color_count = MAX_FADE_TARGETS;
+    }
+
+    struct Labf colors[MAX_FADE_TARGETS];
+    for (uint8_t i = 0; i < color_count; i++) {
+        colors[i] = rgb_to_oklab(rgbi_to_f(params->colors[i]));
+    }
+
+    struct AnimationFade *fade = anim_fade_new_empty();
+    anim_fade_set_targets(fade, colors, color_count);
+    anim_fade_set_fade_time(fade, params->fade_time);
+    for (uint8_t i = 0; i < color_count; i++) {
+        anim_fade_set_hold_time(fade, i, params->hold_time);
+    }
+
+    ctrl_set_animation(ctrl, report->lamp_id, anim_fade, fade);
+}
+
+void ctrl_set_animation_from_report(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
+{
+    switch (report->type) {
+    case ANIMATION_TYPE_NONE:
+        set_animation_none(ctrl, report);
+        break;
+
+    case ANIMATION_TYPE_BREATHE:
+        set_animation_breath(ctrl, report);
+        break;
+
+    case ANIMATION_TYPE_FADE:
+        set_animation_fade(ctrl, report);
+        break;
+    }
 }

@@ -4,6 +4,7 @@
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/lights/report.h"
+#include "hid/vendor/report.h"
 
 typedef struct Controller controller_t;
 
@@ -55,6 +56,9 @@ void ctrl_task(controller_t *ctrl);
 void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id);
 void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseReport *report);
 
+void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply);
+void ctrl_apply_lamp_updates(controller_t *ctrl);
+
 void ctrl_set_autonomous_mode(controller_t *ctrl, bool autonomous);
 bool ctrl_get_autonomous_mode(controller_t *ctrl);
 
@@ -70,7 +74,13 @@ bool ctrl_get_autonomous_mode(controller_t *ctrl);
  */
 void ctrl_set_animation(controller_t *ctrl, uint8_t lamp_id, FrameCallback frame_cb, void *data);
 
-void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply);
-void ctrl_apply_lamp_updates(controller_t *ctrl);
+/**
+ * @brief Sets the animation that plays in autonomous mode from a report.
+ *
+ * This selects the correct frame callback and creates initial animation data,
+ * then calls ctrl_set_animation. See that function for general details about
+ * animations.
+ */
+void ctrl_set_animation_from_report(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report);
 
 #endif // CONTROLLER_CONTROLLER_H_

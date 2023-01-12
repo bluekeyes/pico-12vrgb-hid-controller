@@ -143,51 +143,7 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
     }
 
     struct Vendor12VRGBAnimationReport *report = (struct Vendor12VRGBAnimationReport *) buffer;
-
-    // TODO(bkeyes): document animation parameters somewhere
-    switch (report->type) {
-        case ANIMATION_TYPE_NONE: {
-            ctrl_set_animation(&ctrl, report->lamp_id, NULL, NULL);
-            break;
-        }
-
-        case ANIMATION_TYPE_BREATHE: {
-            uint32_t fade_time = (uint32_t) report->parameters[0];
-            struct RGBi color = *((struct RGBi *) report->colors[0]);
-
-            ctrl_set_animation(&ctrl, report->lamp_id, anim_fade, anim_fade_new_breathe(color, fade_time));
-            break;
-        }
-
-        case ANIMATION_TYPE_FADE: {
-            uint32_t color_count = (uint32_t) report->parameters[0];
-            if (color_count > ANIMATION_REPORT_MAX_COLORS) {
-                color_count = ANIMATION_REPORT_MAX_COLORS;
-            }
-            if (color_count > MAX_FADE_TARGETS) {
-                color_count = MAX_FADE_TARGETS;
-            }
-
-            uint32_t fade_time = (uint32_t) report->parameters[1];
-            uint32_t hold_time = (uint32_t) report->parameters[2];
-
-            struct Labf colors[MAX_FADE_TARGETS];
-            for (uint8_t i = 0; i < color_count; i++) {
-                struct RGBi color = *((struct RGBi *) report->colors[i]);
-                colors[i] = rgb_to_oklab(rgbi_to_f(color));
-            }
-
-            struct AnimationFade *fade = anim_fade_new_empty();
-            anim_fade_set_targets(fade, colors, color_count);
-            anim_fade_set_fade_time(fade, fade_time);
-            for (uint8_t i = 0; i < color_count; i++) {
-                anim_fade_set_hold_time(fade, i, hold_time);
-            }
-
-            ctrl_set_animation(&ctrl, report->lamp_id, anim_fade, fade);
-            break;
-        }
-    }
+    ctrl_set_animation_from_report(&ctrl, report);
 }
 
 static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, uint16_t bufsize)
