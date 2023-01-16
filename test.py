@@ -55,56 +55,26 @@ def update_lamp0(r, g, b):
     ]))
 
 
-def set_fade_animation_lamp0(fade_time, hold_time, colors):
+def set_animation(lamp_id, animation_type, params, colors):
     d = find_vendor_device()
-    data = bytearray([
-        0x08, # report id
-        0x00, # lamp id
-        0x02, # animation type
-    ])
+    data = bytearray([0x08, lamp_id, animation_type])
 
-    data.extend(struct.pack('<lll',
-        len(colors),
-        fade_time,
-        hold_time,
-    ))
-    for i in range(5):
-        data.extend(struct.pack('<l', 0))
+    for param in params + [0] * (8 - len(params)):
+        data.extend(struct.pack('<l', param))
 
-    for color in colors:
-        data.extend(struct.pack('<BBB', *color))
-    for i in range(8 - len(colors)):
-        data.extend(struct.pack('<BBB', 0, 0, 0))
+    for color in colors + [(0, 0, 0)] * (8 - len(colors)):
+        data.extend(struct.pack('<BBB', *color)
 
     write_output_report(d, data)
+
+
+def set_fade_animation_lamp0(fade_time, hold_time, colors):
+    set_animation(0, 0x02, [len(colors), fade_time, hold_time], colors)
 
 
 def set_breathe_animation_lamp0(fade_time, color):
-    d = find_vendor_device()
-    data = bytearray([
-        0x08, # report id
-        0x00, # lamp id
-        0x01, # animation type
-    ])
-
-    data.extend(struct.pack('<l', fade_time))
-    for i in range(7):
-        data.extend(struct.pack('<l', 0))
-
-    data.extend(struct.pack('<BBB', *color))
-    for i in range(7):
-        data.extend(struct.pack('<BBB', 0, 0, 0))
-
-    write_output_report(d, data)
+    set_animation(0, 0x01, [fade_time], [color])
 
 
 def set_none_animation_lamp0():
-    d = find_vendor_device()
-    data = bytearray([
-        0x08, # report id
-        0x00, # lamp id
-        0x00, # animation type
-    ])
-    data.extend(b'\00' * 56)
-
-    write_output_report(d, data)
+    set_animation(0, 0x00, [], [])
