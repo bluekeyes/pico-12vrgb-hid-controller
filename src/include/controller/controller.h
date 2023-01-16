@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_CONTROLLER_H_
 #define CONTROLLER_CONTROLLER_H_
 
+#include <stdbool.h>
+
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/lights/report.h"

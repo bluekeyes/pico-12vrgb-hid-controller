@@ -5,6 +5,7 @@
 
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
+#include "controller/persist.h"
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/data.h"
@@ -143,6 +144,10 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
     }
 
     struct Vendor12VRGBAnimationReport *report = (struct Vendor12VRGBAnimationReport *) buffer;
+
+    if (report->lamp_id > MAX_LAMP_ID) {
+        return;
+    }
     ctrl_set_animation_from_report(&ctrl, report);
 }
 
@@ -154,7 +159,10 @@ static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, ui
 
     struct Vendor12VRGBAnimationReport *report = (struct Vendor12VRGBAnimationReport *) buffer;
 
-    // TODO(bkeyes): implement this
+    if (report->lamp_id > MAX_LAMP_ID) {
+        return;
+    }
+    ctrl_persist_save_report(report);
 }
 
 // Invoked when received GET_REPORT control request

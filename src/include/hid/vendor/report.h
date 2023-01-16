@@ -27,6 +27,7 @@
 // -------------
 // BootSelReport
 // -------------
+
 #define HID_REPORT_DESC_VENDOR_12VRGB_BOOTSEL(REPORT_ID) \
     HID_REPORT_ID   (REPORT_ID) \
     HID_USAGE       (HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT), \
@@ -50,7 +51,7 @@ struct __attribute__ ((packed)) Vendor12VRGBBootSelReport {
 // (Default)AnimationReport
 // ------------------------
 
-#define ANIMATION_REPORT_MAX_PARAMS 4
+#define ANIMATION_REPORT_MAX_PARAMS 8
 #define ANIMATION_REPORT_MAX_COLORS 8
 
 #define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, REPORT_TYPE, REPORT_USAGE) \

@@ -8,6 +8,8 @@
 #define HID_USAGE_PAGE_VENDOR_12VRGB    0xFF00
 
 enum {
+    // TODO(bkeyes): change bootsel to generic reset report with flags
+    //   bootsel, clear flash
     HID_USAGE_VENDOR_12VRGB_CONTROLLER                  = 0x01,
     HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT              = 0x02,
     HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART             = 0x03,

@@ -63,12 +63,13 @@ def set_fade_animation_lamp0(fade_time, hold_time, colors):
         0x02, # animation type
     ])
 
-    data.extend(struct.pack('<llll',
+    data.extend(struct.pack('<lll',
         len(colors),
         fade_time,
         hold_time,
-        0,
     ))
+    for i in range(5):
+        data.extend(struct.pack('<l', 0))
 
     for color in colors:
         data.extend(struct.pack('<BBB', *color))
@@ -86,12 +87,9 @@ def set_breathe_animation_lamp0(fade_time, color):
         0x01, # animation type
     ])
 
-    data.extend(struct.pack('<llll',
-        fade_time,
-        0,
-        0,
-        0,
-    ))
+    data.extend(struct.pack('<l', fade_time))
+    for i in range(7):
+        data.extend(struct.pack('<l', 0))
 
     data.extend(struct.pack('<BBB', *color))
     for i in range(7):
@@ -107,6 +105,6 @@ def set_none_animation_lamp0():
         0x00, # lamp id
         0x00, # animation type
     ])
-    data.extend(b'\00' * 40)
+    data.extend(b'\00' * 56)
 
     write_output_report(d, data)

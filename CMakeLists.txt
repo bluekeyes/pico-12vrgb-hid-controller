@@ -26,6 +26,7 @@ target_sources(rgb_controller PRIVATE
   src/color/color.c
   src/controller/animations/fade.c
   src/controller/controller.c
+  src/controller/persist.c
   src/device/lamp.c
   src/main.c
   src/usb_descriptors.c
@@ -41,6 +42,7 @@ pico_enable_stdio_uart(rgb_controller 1)
 
 # Add the standard library to the build
 target_link_libraries(rgb_controller
+  hardware_flash
   hardware_pwm
   pico_bootrom
   pico_stdlib
