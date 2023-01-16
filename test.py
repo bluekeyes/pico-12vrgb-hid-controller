@@ -25,9 +25,28 @@ def write_output_report(d, report):
         h.close()
 
 
-def bootsel():
+def write_feature_report(d, report):
+    h = hid.device()
+    try:
+        h.open_path(d['path'])
+        h.send_feature_report(report)
+    finally:
+        h.close()
+
+
+def reset():
     d = find_vendor_device()
-    write_output_report(d, bytes([0x07, 0x01]))
+    write_feature_report(d, bytes([0x07, 0b00000000]))
+
+
+def reset_bootsel():
+    d = find_vendor_device()
+    write_feature_report(d, bytes([0x07, 0b00000001]))
+
+
+def reset_clear_flash():
+    d = find_vendor_device()
+    write_feature_report(d, bytes([0x07, 0b00000010]))
 
 
 def set_autonomous_mode(enabled):

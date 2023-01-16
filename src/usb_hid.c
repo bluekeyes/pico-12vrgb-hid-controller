@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "hardware/watchdog.h"
 #include "pico/bootrom.h"
 #include "tusb.h"
 
@@ -14,6 +15,8 @@
 #include "hid/lights/usage.h"
 #include "hid/vendor/report.h"
 #include "hid/vendor/usage.h"
+
+#define RESET_STD_REBOOT_DELAY 100
 
 extern controller_t ctrl;
 
@@ -109,7 +112,7 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
         ctrl_update_lamp(&ctrl, id, value, false);
     }
 
-    if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
+    if (report->update_flags & LAMP_UPDATE_COMPLETE) {
         ctrl_apply_lamp_updates(&ctrl);
     }
 }
@@ -124,16 +127,21 @@ static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsiz
     ctrl_set_autonomous_mode(&ctrl, HID_GET_FLAG(report->autonomous_mode) != 0);
 }
 
-static void set_report_vendor_12vrgb_bootsel(uint8_t const *buffer, uint16_t bufsize)
+static void set_report_vendor_12vrgb_reset(uint8_t const *buffer, uint16_t bufsize)
 {
-    if (bufsize < sizeof(struct Vendor12VRGBBootSelReport)) {
+    if (bufsize < sizeof(struct Vendor12VRGBResetReport)) {
         return;
     }
 
-    struct Vendor12VRGBBootSelReport *report = (struct Vendor12VRGBBootSelReport *) buffer;
+    struct Vendor12VRGBResetReport *report = (struct Vendor12VRGBResetReport *) buffer;
 
-    if (HID_GET_FLAG(report->bootsel_restart) > 0) {
+    if (report->flags & VENDOR_RESET_FLAG_CLEAR_FLASH) {
+        ctrl_persist_clear();
+    }
+    if (report->flags & VENDOR_RESET_FLAG_BOOTSEL) {
         reset_usb_boot(0, 0);
+    } else {
+        watchdog_reboot(0, 0, RESET_STD_REBOOT_DELAY);
     }
 }
 
@@ -198,9 +206,6 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
         case HID_REPORT_ID_LAMP_ARRAY_CONTROL:
             set_report_lamp_array_control(buffer, bufsize);
             break;
-        case HID_REPORT_ID_VENDOR_12VRGB_BOOTSEL:
-            set_report_vendor_12vrgb_bootsel(buffer, bufsize);
-            break;
         case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
             set_report_vendor_12vrgb_animation(buffer, bufsize);
             break;
@@ -209,6 +214,9 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 
     case HID_REPORT_TYPE_FEATURE:
         switch (report_id) {
+        case HID_REPORT_ID_VENDOR_12VRGB_RESET:
+            set_report_vendor_12vrgb_reset(buffer, bufsize);
+            break;
         case HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION:
             set_report_vendor_12vrgb_default_animation(buffer, bufsize);
             break;

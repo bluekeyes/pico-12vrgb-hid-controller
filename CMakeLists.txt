@@ -44,6 +44,7 @@ pico_enable_stdio_uart(rgb_controller 1)
 target_link_libraries(rgb_controller
   hardware_flash
   hardware_pwm
+  hardware_watchdog
   pico_bootrom
   pico_stdlib
   pico_unique_id

@@ -24,27 +24,21 @@
         /* All fields in reports are non-negative */ \
         HID_LOGICAL_MIN (0)
 
-// -------------
-// BootSelReport
-// -------------
+// -----------
+// ResetReport
+// -----------
 
-#define HID_REPORT_DESC_VENDOR_12VRGB_BOOTSEL(REPORT_ID) \
+#define HID_REPORT_DESC_VENDOR_12VRGB_RESET(REPORT_ID) \
     HID_REPORT_ID   (REPORT_ID) \
-    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT), \
+    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_RESET_REPORT), \
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
-        /* BootSelRestart */ \
-        HID_USAGE         (HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART), \
-        HID_LOGICAL_MAX   (1), \
-        HID_REPORT_SIZE   (1), \
-        HID_REPORT_COUNT  (1), \
-        HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_RELATIVE | HID_PREFERRED_STATE), \
-        /* Padding */ \
-        HID_REPORT_SIZE   (7), \
-        HID_OUTPUT        (HID_CONSTANT), \
+        /* ResetFlags */ \
+        HID_USAGE         (HID_USAGE_VENDOR_12VRGB_RESET_FLAGS), \
+        HID_ITEM_UINT8    (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
-struct __attribute__ ((packed)) Vendor12VRGBBootSelReport {
-    uint8_t bootsel_restart;
+struct __attribute__ ((packed)) Vendor12VRGBResetReport {
+    uint8_t flags;
 };
 
 // ------------------------

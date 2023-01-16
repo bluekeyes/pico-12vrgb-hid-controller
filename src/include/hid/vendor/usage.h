@@ -8,11 +8,9 @@
 #define HID_USAGE_PAGE_VENDOR_12VRGB    0xFF00
 
 enum {
-    // TODO(bkeyes): change bootsel to generic reset report with flags
-    //   bootsel, clear flash
     HID_USAGE_VENDOR_12VRGB_CONTROLLER                  = 0x01,
-    HID_USAGE_VENDOR_12VRGB_BOOTSEL_REPORT              = 0x02,
-    HID_USAGE_VENDOR_12VRGB_BOOTSEL_RESTART             = 0x03,
+    HID_USAGE_VENDOR_12VRGB_RESET_REPORT                = 0x02,
+    HID_USAGE_VENDOR_12VRGB_RESET_FLAGS                 = 0x03,
     HID_USAGE_VENDOR_12VRGB_ANIMATION_REPORT            = 0x10,
     HID_USAGE_VENDOR_12VRGB_LAMP_ID                     = 0x11,
     HID_USAGE_VENDOR_12VRGB_ANIMATION_TYPE              = 0x12,
@@ -21,6 +19,11 @@ enum {
     HID_USAGE_VENDOR_12VRGB_ANIMATION_COLOR_GREEN       = 0x15,
     HID_USAGE_VENDOR_12VRGB_ANIMATION_COLOR_BLUE        = 0x16,
     HID_USAGE_VENDOR_12VRGB_DEFAULT_ANIMATION_REPORT    = 0x20,
+};
+
+enum {
+    VENDOR_RESET_FLAG_BOOTSEL       = 0x01,
+    VENDOR_RESET_FLAG_CLEAR_FLASH   = 0x02,
 };
 
 enum {
