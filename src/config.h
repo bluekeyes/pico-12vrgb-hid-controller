@@ -7,6 +7,11 @@
 // version and N is the patch version.
 #define CFG_RGB_DEVICE_VERSION 0x0010
 
+// The USB vendor and product IDs for the device.
+// TODO(bkeyes): set appropriate VID/PID
+#define CFG_RGB_USB_VID   0xCafe
+#define CFG_RGB_USB_PID   0x4100
+
 // The number of lamps that can be updated in a single LampMultiUpdateReport
 //
 // Range: [1, 8]

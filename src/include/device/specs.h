@@ -27,8 +27,18 @@
 #define LAMP_COLOR_LEVELS       255
 
 /**
- * The number of intensity levels for each lamp (on or off)
+ * The number of intensity levels for each lamp (on or off).
  */
 #define LAMP_INTENSITY_LEVELS   1
+
+/**
+ * The maximum current drawn by the device from USB, in mA.
+ */
+#define DEVICE_USB_POWER   120
+
+/**
+ * The polling frequency in frames (~1ms/frame) for USB endpoints.
+ */
+#define DEVICE_USB_POLL_FRAMES  5
 
 #endif /* DEVICE_SPECS_H_ */

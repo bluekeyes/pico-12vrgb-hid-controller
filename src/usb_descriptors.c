@@ -9,10 +9,7 @@
 #include "hid/lights/report.h"
 #include "hid/vendor/report.h"
 
-// TODO(bkeyes): set appropriate VID / PID
-#define USB_VID   0xCafe
-#define USB_PID   0x4100
-#define USB_BCD   0x0200 // USB 2.0
+#define USB_BCD 0x0200 // USB 2.0
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -26,8 +23,8 @@ tusb_desc_device_t const desc_device = {
     .bDeviceProtocol    = 0x00,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor           = USB_VID,
-    .idProduct          = USB_PID,
+    .idVendor           = CFG_RGB_USB_VID,
+    .idProduct          = CFG_RGB_USB_PID,
     .bcdDevice          = CFG_RGB_DEVICE_VERSION,
 
     .iManufacturer      = 0x01,
@@ -39,7 +36,7 @@ tusb_desc_device_t const desc_device = {
 
 uint8_t const *tud_descriptor_device_cb(void)
 {
-  return (uint8_t const *) &desc_device;
+    return (uint8_t const *) &desc_device;
 }
 
 //--------------------------------------------------------------------+
@@ -71,7 +68,7 @@ uint8_t const desc_hid_report[] = {
 
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
 {
-  return desc_hid_report;
+    return desc_hid_report;
 }
 
 //--------------------------------------------------------------------+
@@ -79,28 +76,32 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
 //--------------------------------------------------------------------+
 
 enum {
-  ITF_NUM_HID,
-  ITF_NUM_TOTAL
+    ITF_NUM_HID,
+    ITF_NUM_TOTAL
 };
 
-#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN)
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
 
-#define EPNUM_HID   0x81
+#define HID_EP_NUM          0x01
+#define HID_EP_DIR_OUT      0x00
+#define HID_EP_DIR_IN       0x80
 
 uint8_t const desc_configuration[] =
 {
-  // Config number, interface count, string index, total length, attribute, power in mA
-  // TODO(bkeyes): check attributes and power
-  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
+    // Config number, interface count, string index, total length, attribute, power in mA
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0, DEVICE_USB_POWER),
 
-  // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-  // TODO(bkeyes): check if endpoint options (EPNUM_HID, bufsize, polling interval)
-  TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
+    // Interface number, string index, protocol, report descriptor len, out addr, in addr, bufsize, poll interval
+    TUD_HID_INOUT_DESCRIPTOR(
+        ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report),
+        HID_EP_DIR_OUT | HID_EP_NUM, HID_EP_DIR_IN | HID_EP_NUM,
+        CFG_TUD_HID_EP_BUFSIZE, DEVICE_USB_POLL_FRAMES
+    )
 };
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
 {
-  return desc_configuration;
+    return desc_configuration;
 }
 
 //--------------------------------------------------------------------+
