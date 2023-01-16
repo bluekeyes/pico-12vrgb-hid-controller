@@ -82,7 +82,7 @@ def set_animation(lamp_id, animation_type, params, colors):
         data.extend(struct.pack('<l', param))
 
     for color in colors + [(0, 0, 0)] * (8 - len(colors)):
-        data.extend(struct.pack('<BBB', *color)
+        data.extend(struct.pack('<BBB', *color))
 
     write_output_report(d, data)
 

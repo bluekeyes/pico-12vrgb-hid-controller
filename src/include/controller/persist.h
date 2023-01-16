@@ -42,4 +42,9 @@ void ctrl_persist_save_report(struct Vendor12VRGBAnimationReport *report);
  */
 struct Vendor12VRGBAnimationReport *ctrl_persist_find_report(uint8_t lamp_id);
 
+/**
+ * @brief Dumps the content of the persistent flash storage to stdout for debugging.
+ */
+void ctrl_persist_dump();
+
 #endif /* CONTROLLER_PERSIST_H_ */

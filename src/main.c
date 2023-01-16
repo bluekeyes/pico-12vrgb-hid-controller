@@ -12,8 +12,14 @@ controller_t ctrl;
 
 int main()
 {
+    stdio_init_all();
+
     ctrl_init(&ctrl);
     ctrl_persist_init();
+
+    // TODO(bkeyes): remove or flag this debug call
+    ctrl_persist_dump();
+
     lamp_init();
     tusb_init();
 

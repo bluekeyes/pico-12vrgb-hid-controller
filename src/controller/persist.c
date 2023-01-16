@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "hardware/flash.h"
 #include "hardware/sync.h"
@@ -202,6 +203,23 @@ static void write_reports(uint8_t *pagebuf, uint32_t offset, struct Vendor12VRGB
         *((uint16_t *) p) = PERSIST_REPORT_MARKER;
         *((struct Vendor12VRGBAnimationReport *) (p + PERSIST_REPORT_MARKER_BYTES)) = reports[i];
     }
+}
+
+#define DUMP_BYTES_PER_LINE 16
+
+void ctrl_persist_dump()
+{
+    puts("\n=== memory dump ===");
+
+    uint32_t count = 0;
+    for (void *ptr = PERSIST_ADDR(0); ptr < PERSIST_ADDR(PERSIST_FLASH_SIZE); ptr++) {
+        if (count % DUMP_BYTES_PER_LINE == 0) {
+            printf("\n%4d: ", count);
+        }
+        printf("%02x ", *((uint8_t *) ptr));
+        count++;
+    }
+    putchar('\n');
 }
 
 // ----------
