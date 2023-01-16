@@ -8,7 +8,12 @@
 #define CFG_RGB_DEVICE_VERSION 0x0010
 
 // The USB vendor and product IDs for the device.
-// TODO(bkeyes): set appropriate VID/PID
+//
+// TODO(bkeyes): these values are not "legal", but are the values used in
+// tinyUSB examples for HID devices. These should be changed, possibly to one
+// from pid.codes or to a Raspberry Pi one if they issue a generic HID code.
+// For now, squatting on an ID used in a lot of example code seemed better than
+// squatting on a random ID.
 #define CFG_RGB_USB_VID   0xCafe
 #define CFG_RGB_USB_PID   0x4100
 
