@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "hardware/watchdog.h"
@@ -59,28 +60,42 @@ static void set_report_lamp_attributes_request(uint8_t const *buffer, uint16_t b
     ctrl_set_next_lamp_attributes_id(&ctrl, report->lamp_id);
 }
 
+static inline bool is_valid_rgbi_tuple(uint8_t *rgbi)
+{
+    return rgbi[0] <= LAMP_COLOR_LEVELS
+        && rgbi[1] <= LAMP_COLOR_LEVELS
+        && rgbi[2] <= LAMP_COLOR_LEVELS
+        && rgbi[3] <= LAMP_INTENSITY_LEVELS;
+}
+
 static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize)
 {
     if (bufsize < sizeof(struct LampMultiUpdateReport)) {
         return;
     }
+
+    // Reject updates if device is running in autonomous mode
     if (ctrl_get_autonomous_mode(&ctrl)) {
         return;
     }
 
     struct LampMultiUpdateReport *report = (struct LampMultiUpdateReport *) buffer;
 
+    // Validate input, reject report if any parameters are invalid
     if (report->lamp_count > LAMP_MULTI_UPDATE_BATCH_SIZE) {
         return;
     }
-
     for (uint8_t i = 0; i < report->lamp_count; i++) {
-        uint8_t id = report->lamp_ids[i];
-        if (id > MAX_LAMP_ID) {
+        if (report->lamp_ids[i] > MAX_LAMP_ID) {
             return;
         }
-        // TODO(bkeyes): per spec, need to check levels against allowed counts
-        ctrl_update_lamp(&ctrl, id, *((struct LampValue *) &report->rgbi_tuples[i]), false);
+        if (!is_valid_rgbi_tuple(report->rgbi_tuples[i])) {
+            return;
+        }
+    }
+
+    for (uint8_t i = 0; i < report->lamp_count; i++) {
+        ctrl_update_lamp(&ctrl, report->lamp_ids[i], *((struct LampValue *) report->rgbi_tuples[i]), false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
@@ -93,22 +108,27 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
     if (bufsize < sizeof(struct LampRangeUpdateReport)) {
         return;
     }
+
+    // Reject updates if device is running in autonomous mode
     if (ctrl_get_autonomous_mode(&ctrl)) {
         return;
     }
 
     struct LampRangeUpdateReport *report = (struct LampRangeUpdateReport *) buffer;
 
+    // Validate input, reject report if any parameters are invalid
     if (report->lamp_id_start > MAX_LAMP_ID || report->lamp_id_end > MAX_LAMP_ID) {
         return;
     }
     if (report->lamp_id_start > report->lamp_id_end) {
         return;
     }
+    if (!is_valid_rgbi_tuple(report->rgbi_tuple)) {
+        return;
+    }
 
     struct LampValue value = *((struct LampValue *) report->rgbi_tuple);
     for (uint8_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
-        // TODO(bkeyes): per spec, need to check levels against allowed counts
         ctrl_update_lamp(&ctrl, id, value, false);
     }
 
