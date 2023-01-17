@@ -181,7 +181,7 @@ static void set_animation_none(controller_t *ctrl, struct Vendor12VRGBAnimationR
     ctrl_set_animation(ctrl, report->lamp_id, NULL, NULL);
 }
 
-static void set_animation_breath(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
+static void set_animation_breathe(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
 {
     struct ReportParametersBreathe *params = (struct ReportParametersBreathe *) report->parameters;
     struct AnimationFade *fade = anim_fade_new_breathe(params->color, params->fade_time);
@@ -223,7 +223,7 @@ void ctrl_set_animation_from_report(controller_t *ctrl, struct Vendor12VRGBAnima
         break;
 
     case ANIMATION_TYPE_BREATHE:
-        set_animation_breath(ctrl, report);
+        set_animation_breathe(ctrl, report);
         break;
 
     case ANIMATION_TYPE_FADE:
