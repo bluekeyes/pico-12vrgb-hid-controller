@@ -74,9 +74,11 @@ def update_lamp0(r, g, b):
     ]))
 
 
-def set_animation(lamp_id, animation_type, params, colors):
+def set_animation(lamp_id, animation_type, params, colors, set_default=False):
+    report_id = 0x09 if set_default else 0x08
+
     d = find_vendor_device()
-    data = bytearray([0x08, lamp_id, animation_type])
+    data = bytearray([report_id, lamp_id, animation_type])
 
     for param in params + [0] * (8 - len(params)):
         data.extend(struct.pack('<l', param))
@@ -84,16 +86,19 @@ def set_animation(lamp_id, animation_type, params, colors):
     for color in colors + [(0, 0, 0)] * (8 - len(colors)):
         data.extend(struct.pack('<BBB', *color))
 
-    write_output_report(d, data)
+    if set_default:
+        write_feature_report(d, data)
+    else:
+        write_output_report(d, data)
 
 
-def set_fade_animation_lamp0(fade_time, hold_time, colors):
-    set_animation(0, 0x02, [len(colors), fade_time, hold_time], colors)
+def set_fade_animation_lamp0(fade_time, hold_time, colors, set_default=False):
+    set_animation(0, 0x02, [len(colors), fade_time, hold_time], colors, set_default=set_default)
 
 
-def set_breathe_animation_lamp0(fade_time, color):
-    set_animation(0, 0x01, [fade_time], [color])
+def set_breathe_animation_lamp0(fade_time, color, set_default=False):
+    set_animation(0, 0x01, [fade_time], [color], set_default=set_default)
 
 
-def set_none_animation_lamp0():
-    set_animation(0, 0x00, [], [])
+def set_none_animation_lamp0(set_default=False):
+    set_animation(0, 0x00, [], [], set_default=set_default)
