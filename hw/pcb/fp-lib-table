@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "pico_12vrgb_controller")(type "KiCad")(uri "${KIPRJMOD}/pico_12vrgb_controller.pretty")(options "")(descr ""))
+)
