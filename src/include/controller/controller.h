@@ -41,6 +41,7 @@ typedef uint8_t (*FrameCallback)(controller_t *ctrl, uint8_t lamp_id, struct Ani
 // ----------
 
 struct Controller {
+    bool is_suspended;
     bool is_autonomous;
     uint8_t next_lamp_id;
 
@@ -54,6 +55,9 @@ struct Controller {
 
 void ctrl_init(controller_t *ctrl);
 void ctrl_task(controller_t *ctrl);
+
+void ctrl_suspend(controller_t *ctrl);
+void ctrl_resume(controller_t *ctrl);
 
 void ctrl_set_next_lamp_attributes_id(controller_t *ctrl, uint8_t lamp_id);
 void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseReport *report);

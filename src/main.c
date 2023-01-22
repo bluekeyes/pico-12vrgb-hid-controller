@@ -38,3 +38,13 @@ int main()
 
     return 0;
 }
+
+void tud_suspend_cb(bool remote_wakeup_en)
+{
+    ctrl_suspend(&ctrl);
+}
+
+void tud_resume_cb()
+{
+    ctrl_resume(&ctrl);
+}

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "hardware/timer.h"
+#include "hardware/sync.h"
 
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
@@ -12,18 +13,12 @@
 #include "hid/data.h"
 #include "hid/lights/report.h"
 
-static inline struct AnimationState get_initial_animation_state(void *data) {
-    struct AnimationState state = {
-        .stage = 0,
-        .frame = 0,
-        .stage_frame = 0,
-        .data = data,
-    };
-    return state;
-}
+static struct AnimationState get_initial_animation_state(void *);
+static void ctrl_animation_frame(controller_t *, uint8_t);
 
 void ctrl_init(controller_t *ctrl)
 {
+    ctrl->is_suspended = false;
     ctrl->is_autonomous = true;
     ctrl->next_lamp_id = 0;
 
@@ -37,36 +32,17 @@ void ctrl_init(controller_t *ctrl)
     ctrl->last_frame_time_us = 0;
 }
 
-/**
- * @brief Processes a single frame of animation for a lamp.
- */
-static void ctrl_animation_frame(controller_t *ctrl, uint8_t lamp_id)
+void ctrl_task(controller_t *ctrl)
 {
-    struct AnimationState *state = &ctrl->animation[lamp_id];
-
-    FrameCallback frame_cb = ctrl->frame_cb[lamp_id];
-    if (frame_cb == NULL) {
+    if (ctrl->is_suspended) {
+        // If we're supposed to be suspended, wait for an interrupt. We should
+        // get a USB interrupt on resume, which will clear the suspended flag.
+        // If there's an interrupt for another reason, the next run of the task
+        // will block again.
+        __wfi();
         return;
     }
 
-    uint8_t next_stage = frame_cb(ctrl, lamp_id, state);
-
-    state->frame++;
-    state->stage_frame++;
-
-    if (state->stage != next_stage) {
-        state->stage = next_stage;
-        state->stage_frame = 0;
-
-        // returning to stage 0 resets the full animation
-        if (next_stage == 0) {
-            state->frame = 0;
-        }
-    }
-}
-
-void ctrl_task(controller_t *ctrl)
-{
     if (ctrl->is_autonomous) {
         uint32_t last = ctrl->last_frame_time_us;
         uint32_t now = time_us_32();
@@ -98,6 +74,66 @@ void ctrl_task(controller_t *ctrl)
             }
         }
         ctrl->do_update = false;
+    }
+}
+
+void ctrl_suspend(controller_t *ctrl)
+{
+    // turn off all lamps immediately, but mark them as dirty for the next task
+    for (uint8_t id = 0; id < LAMP_COUNT; id++) {
+        lamp_state *state = &ctrl->lamp_state[id];
+
+        state->dirty = true;
+        state->next = state->current;
+
+        lamp_set_off(id);
+    }
+
+    ctrl->is_suspended = true;
+}
+
+void ctrl_resume(controller_t *ctrl)
+{
+    // clear suspended flag, next task will do the rest
+    ctrl->is_suspended = false;
+}
+
+static inline struct AnimationState get_initial_animation_state(void *data)
+{
+    struct AnimationState state = {
+        .stage = 0,
+        .frame = 0,
+        .stage_frame = 0,
+        .data = data,
+    };
+    return state;
+}
+
+/**
+ * @brief Processes a single frame of animation for a lamp.
+ */
+static void ctrl_animation_frame(controller_t *ctrl, uint8_t lamp_id)
+{
+    struct AnimationState *state = &ctrl->animation[lamp_id];
+
+    FrameCallback frame_cb = ctrl->frame_cb[lamp_id];
+    if (frame_cb == NULL) {
+        return;
+    }
+
+    uint8_t next_stage = frame_cb(ctrl, lamp_id, state);
+
+    state->frame++;
+    state->stage_frame++;
+
+    if (state->stage != next_stage) {
+        state->stage = next_stage;
+        state->stage_frame = 0;
+
+        // returning to stage 0 resets the full animation
+        if (next_stage == 0) {
+            state->frame = 0;
+        }
     }
 }
 
