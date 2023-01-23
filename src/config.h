@@ -94,4 +94,11 @@
 // Units: Hz
 #define CFG_RGB_ANIMATION_FRAME_RATE 120
 
+// The frequency at which to send keep-alive reports to prevent Windows (and
+// possibly other OSs) from selectively suspending the USB device.
+//
+// Range: [0, 2^31-1]
+// Units: Microseconds
+#define CFG_RGB_KEEPALIVE_INTERVAL 2000000
+
 #endif

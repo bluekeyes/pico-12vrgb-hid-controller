@@ -16,11 +16,8 @@ int main()
 
     ctrl_init(&ctrl);
     ctrl_persist_init();
-
-    // TODO(bkeyes): remove or flag this debug call
-    ctrl_persist_dump();
-
     lamp_init();
+
     tusb_init();
 
     // Set default animations for all lamps
@@ -32,8 +29,8 @@ int main()
     }
 
     while (true) {
-        ctrl_task(&ctrl);
         tud_task();
+        ctrl_task(&ctrl);
     }
 
     return 0;

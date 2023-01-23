@@ -50,7 +50,9 @@ struct Controller {
 
     struct AnimationState animation[LAMP_COUNT];
     FrameCallback frame_cb[LAMP_COUNT];
+
     uint32_t last_frame_time_us;
+    uint32_t last_keepalive_time_us;
 };
 
 void ctrl_init(controller_t *ctrl);

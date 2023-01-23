@@ -41,6 +41,25 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
     uint8_t flags;
 };
 
+// ----------------
+// KeepAlive Report
+// ----------------
+
+#define HID_REPORT_DESC_VENDOR_12VRGB_KEEPALIVE(REPORT_ID) \
+    HID_REPORT_ID   (REPORT_ID) \
+    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_KEEPALIVE_REPORT), \
+    HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
+        /* KeepAlive */ \
+        HID_USAGE           (HID_USAGE_VENDOR_12VRGB_KEEPALIVE), \
+        HID_LOGICAL_MAX     (1), \
+        HID_REPORT_SIZE     (1), \
+        HID_REPORT_COUNT    (1), \
+        HID_INPUT           (HID_DATA | HID_VARIABLE | HID_ABSOLUTE | HID_PREFERRED_STATE), \
+        /* Padding */ \
+        HID_REPORT_SIZE     (7), \
+        HID_INPUT           (HID_CONSTANT), \
+    HID_COLLECTION_END
+
 // ------------------------
 // (Default)AnimationReport
 // ------------------------

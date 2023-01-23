@@ -5,16 +5,19 @@
 
 #include "hardware/timer.h"
 #include "hardware/sync.h"
+#include "tusb.h"
 
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/data.h"
+#include "hid/descriptor.h"
 #include "hid/lights/report.h"
 
 static struct AnimationState get_initial_animation_state(void *);
 static void ctrl_animation_frame(controller_t *, uint8_t);
+static uint32_t get_elapsed(uint32_t now, uint32_t last);
 
 void ctrl_init(controller_t *ctrl)
 {
@@ -30,6 +33,7 @@ void ctrl_init(controller_t *ctrl)
         ctrl->frame_cb[i] = NULL;
     }
     ctrl->last_frame_time_us = 0;
+    ctrl->last_keepalive_time_us = 0;
 }
 
 void ctrl_task(controller_t *ctrl)
@@ -43,17 +47,11 @@ void ctrl_task(controller_t *ctrl)
         return;
     }
 
+    uint32_t now = time_us_32();
+
+    // Update animation state
     if (ctrl->is_autonomous) {
-        uint32_t last = ctrl->last_frame_time_us;
-        uint32_t now = time_us_32();
-
-        uint32_t elapsed;
-        if (now < last) { /* timer overflow */
-            elapsed = now + (UINT32_MAX - last) + 1;
-        } else {
-            elapsed = now - last;
-        }
-
+        uint32_t elapsed = get_elapsed(now, ctrl->last_frame_time_us);
         if (elapsed >= ANIM_FRAME_TIME_US) {
             for (uint8_t id = 0; id < LAMP_COUNT; id++) {
                 ctrl_animation_frame(ctrl, id);
@@ -62,6 +60,7 @@ void ctrl_task(controller_t *ctrl)
         }
     }
 
+    // Apply pending changes to LEDs
     if (ctrl->do_update) {
         for (uint8_t id = 0; id < LAMP_COUNT; id++) {
             lamp_state *state = &ctrl->lamp_state[id];
@@ -75,6 +74,36 @@ void ctrl_task(controller_t *ctrl)
         }
         ctrl->do_update = false;
     }
+
+    // Generate keepalive messages on the vendor interface
+    //
+    // Without regular traffic, the Windows 11 HID driver appears use USB
+    // Selective Suspend to suspend idle devices to save power. There's no way
+    // to distinguish between a selective suspend and a global suspend (i.e.
+    // the system going to sleep), so we need to disable the selective events
+    // in order to correctly detect global events and turn off the lamps.
+    //
+    // Theoretically, you can disable this feature in Windows, but I couldn't
+    // get it to work in my initial tests and not having to configure stuff at
+    // all sounds better.
+    //
+    // See also: https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/selective-suspend-for-hid-over-usb-devices
+    uint32_t elapsed = get_elapsed(now, ctrl->last_keepalive_time_us);
+    if (elapsed >= CFG_RGB_KEEPALIVE_INTERVAL) {
+        if (tud_hid_ready()) {
+            uint8_t keepalive_data = 0x01;
+            tud_hid_report(HID_REPORT_ID_VENDOR_12VRGB_KEEPALIVE, &keepalive_data, 1);
+        }
+        ctrl->last_keepalive_time_us = now;
+    }
+}
+
+static inline uint32_t get_elapsed(uint32_t now, uint32_t last)
+{
+    if (now < last) { /* timer overflow */
+        return now + (UINT32_MAX - last) + 1;
+    }
+    return now - last;
 }
 
 void ctrl_suspend(controller_t *ctrl)
