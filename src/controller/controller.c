@@ -5,14 +5,12 @@
 
 #include "hardware/timer.h"
 #include "hardware/sync.h"
-#include "tusb.h"
 
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/data.h"
-#include "hid/descriptor.h"
 #include "hid/lights/report.h"
 
 static struct AnimationState get_initial_animation_state(void *);
@@ -33,17 +31,11 @@ void ctrl_init(controller_t *ctrl)
         ctrl->frame_cb[i] = NULL;
     }
     ctrl->last_frame_time_us = 0;
-    ctrl->last_keepalive_time_us = 0;
 }
 
 void ctrl_task(controller_t *ctrl)
 {
     if (ctrl->is_suspended) {
-        // If we're supposed to be suspended, wait for an interrupt. We should
-        // get a USB interrupt on resume, which will clear the suspended flag.
-        // If there's an interrupt for another reason, the next run of the task
-        // will block again.
-        __wfi();
         return;
     }
 
@@ -73,28 +65,6 @@ void ctrl_task(controller_t *ctrl)
             }
         }
         ctrl->do_update = false;
-    }
-
-    // Generate keepalive messages on the vendor interface
-    //
-    // Without regular traffic, the Windows 11 HID driver appears use USB
-    // Selective Suspend to suspend idle devices to save power. There's no way
-    // to distinguish between a selective suspend and a global suspend (i.e.
-    // the system going to sleep), so we need to disable the selective events
-    // in order to correctly detect global events and turn off the lamps.
-    //
-    // Theoretically, you can disable this feature in Windows, but I couldn't
-    // get it to work in my initial tests and not having to configure stuff at
-    // all sounds better.
-    //
-    // See also: https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/selective-suspend-for-hid-over-usb-devices
-    uint32_t elapsed = get_elapsed(now, ctrl->last_keepalive_time_us);
-    if (elapsed >= CFG_RGB_KEEPALIVE_INTERVAL) {
-        if (tud_hid_ready()) {
-            uint8_t keepalive_data = 0x01;
-            tud_hid_report(HID_REPORT_ID_VENDOR_12VRGB_KEEPALIVE, &keepalive_data, 1);
-        }
-        ctrl->last_keepalive_time_us = now;
     }
 }
 

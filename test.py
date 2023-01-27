@@ -75,7 +75,7 @@ def update_lamp0(r, g, b):
 
 
 def set_animation(lamp_id, animation_type, params, colors, set_default=False):
-    report_id = 0x0A if set_default else 0x09
+    report_id = 0x09 if set_default else 0x08
 
     d = find_vendor_device()
     data = bytearray([report_id, lamp_id, animation_type])
