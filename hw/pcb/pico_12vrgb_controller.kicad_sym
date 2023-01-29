@@ -125,7 +125,7 @@
         (name "GP28" (effects (font (size 1.27 1.27))))
         (number "34" (effects (font (size 1.27 1.27))))
       )
-      (pin power_in line (at 7.62 43.18 270) (length 2.54)
+      (pin input line (at 7.62 43.18 270) (length 2.54)
         (name "ADC_VREF" (effects (font (size 1.27 1.27))))
         (number "35" (effects (font (size 1.27 1.27))))
       )
