@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -7,24 +8,28 @@
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "device/lamp.h"
+#include "hid/vendor/report.h"
+
+static inline uint32_t ms_to_us(uint16_t ms)
+{
+    return 1000 * (uint32_t) ms;
+}
 
 struct AnimationFade *anim_fade_new_empty()
 {
-    struct AnimationFade *fade = malloc(sizeof(struct AnimationFade));
+    struct AnimationFade *fade = calloc(1, sizeof(struct AnimationFade));
     if (fade == NULL) {
         return NULL;
     }
 
-    memset(fade->targets, 0, sizeof(fade->targets));
-    memset(fade->hold_frames, 0, sizeof(fade->hold_frames));
-
     fade->target_count = 2;
-    anim_fade_set_fade_time(fade, 1000000);
+    anim_fade_set_fade_time_us(fade, 0, ms_to_us(1000));
+    anim_fade_set_fade_time_us(fade, 1, ms_to_us(1000));
 
     return fade;
 }
 
-struct AnimationFade *anim_fade_new_breathe(struct RGBi color, uint32_t fade_time_us)
+struct AnimationFade *anim_fade_new_breathe(struct AnimationBreatheReportData *data)
 {
     struct AnimationFade *fade = anim_fade_new_empty();
     if (fade == NULL) {
@@ -32,34 +37,45 @@ struct AnimationFade *anim_fade_new_breathe(struct RGBi color, uint32_t fade_tim
     }
 
     struct Labf targets[2];
-    targets[0] = rgb_to_oklab(rgbi_to_f(color));
-    targets[1] = targets[0];
+    targets[0] = rgb_to_oklab(rgbi_to_f(data->on_color));
+    if (data->off_color.r == 0 && data->off_color.g == 0 && data->off_color.b == 0) {
+        // copy the on color if the off color is not set
+        targets[1] = targets[0];
+    } else {
+        targets[1] = rgb_to_oklab(rgbi_to_f(data->off_color));
+    }
+    // lightness of off color is always 0
     targets[1].L = 0.f;
-
     anim_fade_set_targets(fade, targets, 2);
-    anim_fade_set_fade_time(fade, fade_time_us);
-    anim_fade_set_hold_time(fade, 0, fade_time_us/8);
-    anim_fade_set_hold_time(fade, 1, fade_time_us/2);
+
+    anim_fade_set_fade_time_us(fade, 0, ms_to_us(data->on_fade_time_ms));
+    anim_fade_set_hold_time_us(fade, 0, ms_to_us(data->on_time_ms));
+    anim_fade_set_fade_time_us(fade, 1, ms_to_us(data->off_fade_time_ms > 0 ? data->off_fade_time_ms : data->on_fade_time_ms));
+    anim_fade_set_hold_time_us(fade, 1, ms_to_us(data->off_time_ms));
 
     return fade;
 }
 
-struct AnimationFade *anim_fade_new_cross(struct RGBi color1, struct RGBi color2, uint32_t fade_time_us)
+struct AnimationFade *anim_fade_new_fade(struct AnimationFadeReportData *data)
 {
     struct AnimationFade *fade = anim_fade_new_empty();
     if (fade == NULL) {
         return NULL;
     }
 
-    struct Labf targets[] = {
-        rgb_to_oklab(rgbi_to_f(color1)),
-        rgb_to_oklab(rgbi_to_f(color2)),
-    };
+    uint8_t color_count = data->color_count;
+    if (color_count > MAX_FADE_TARGETS) {
+        color_count = MAX_FADE_TARGETS;
+    }
 
-    anim_fade_set_targets(fade, targets, 2);
-    anim_fade_set_fade_time(fade, fade_time_us);
-    anim_fade_set_hold_time(fade, 0, fade_time_us/8);
-    anim_fade_set_hold_time(fade, 1, fade_time_us/8);
+    struct Labf targets[MAX_FADE_TARGETS];
+    for (uint8_t i = 0; i < color_count; i++) {
+        targets[i] = rgb_to_oklab(rgbi_to_f(data->colors[i]));
+
+        anim_fade_set_fade_time_us(fade, i, ms_to_us(data->fade_time_ms));
+        anim_fade_set_hold_time_us(fade, i, ms_to_us(data->hold_time_ms));
+    }
+    anim_fade_set_targets(fade, targets, data->color_count);
 
     return fade;
 }
@@ -73,25 +89,33 @@ void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uin
     fade->current_color = targets[count - 1];
 }
 
-void anim_fade_set_fade_time(struct AnimationFade *fade, uint32_t fade_time_us)
+void anim_fade_set_fade_time_us(struct AnimationFade *fade, uint8_t stage, uint32_t fade_time)
 {
-    fade->fade_frames = fade_time_us / ANIM_FRAME_TIME_US;
-}
-
-void anim_fade_set_hold_time(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time_us)
-{
-    if (stage > MAX_FADE_TARGETS - 1) {
+    if (stage >= MAX_FADE_TARGETS) {
         return;
     }
-    fade->hold_frames[stage] = hold_time_us / ANIM_FRAME_TIME_US;
+    fade->fade_frames[stage] = fade_time / ANIM_FRAME_TIME_US;
+}
+
+void anim_fade_set_hold_time_us(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time)
+{
+    if (stage >= MAX_FADE_TARGETS) {
+        return;
+    }
+    fade->hold_frames[stage] = hold_time / ANIM_FRAME_TIME_US;
 }
 
 static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_t src)
 {
-    if (fade->fade_frames > 0) {
-        fade->Ldiff = (fade->targets[dest].L - fade->targets[src].L) / ((float) fade->fade_frames);
-        fade->adiff = (fade->targets[dest].a - fade->targets[src].a) / ((float) fade->fade_frames);
-        fade->bdiff = (fade->targets[dest].b - fade->targets[src].b) / ((float) fade->fade_frames);
+    uint32_t fade_frames = fade->fade_frames[dest];
+    if (fade_frames > 0) {
+        fade->Ldiff = (fade->targets[dest].L - fade->targets[src].L) / ((float) fade_frames);
+        fade->adiff = (fade->targets[dest].a - fade->targets[src].a) / ((float) fade_frames);
+        fade->bdiff = (fade->targets[dest].b - fade->targets[src].b) / ((float) fade_frames);
+    } else {
+        fade->Ldiff = 0.f;
+        fade->adiff = 0.f;
+        fade->bdiff = 0.f;
     }
 }
 
@@ -117,7 +141,7 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
             // starting a new fade stage, initialize fade diffs
             anim_fade_set_diffs(fade, target, target == 0 ? fade->target_count - 1 : (target - 1));
         }
-        stage_frames = fade->fade_frames;
+        stage_frames = fade->fade_frames[target];
 
         fade->current_color.L += fade->Ldiff;
         fade->current_color.a += fade->adiff;
@@ -135,3 +159,17 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
     }
     return state->stage;
 }
+
+// ----------
+// Assertions
+// ----------
+
+static_assert(
+    sizeof(struct AnimationBreatheReportData) <= ANIMATION_REPORT_DATA_SIZE,
+    "struct AnimationBreatheReportData is larger than the report data size"
+);
+
+static_assert(
+    sizeof(struct AnimationFadeReportData) <= ANIMATION_REPORT_DATA_SIZE,
+    "struct AnimationFadeReportData is larger than the report data size"
+);

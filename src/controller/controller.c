@@ -39,6 +39,7 @@ void ctrl_task(controller_t *ctrl)
         return;
     }
 
+    // TODO(bkeyes): just use pico_timestamp functions for this
     uint32_t now = time_us_32();
 
     // Update animation state
@@ -218,35 +219,15 @@ static void set_animation_none(controller_t *ctrl, struct Vendor12VRGBAnimationR
 
 static void set_animation_breathe(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
 {
-    struct ReportParametersBreathe *params = (struct ReportParametersBreathe *) report->parameters;
-    struct AnimationFade *fade = anim_fade_new_breathe(params->color, params->fade_time);
+    struct AnimationBreatheReportData *data = (struct AnimationBreatheReportData *) report->data;
+    struct AnimationFade *fade = anim_fade_new_breathe(data);
     ctrl_set_animation(ctrl, report->lamp_id, anim_fade, fade);
 }
 
 static void set_animation_fade(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
 {
-    struct ReportParametersFade *params = (struct ReportParametersFade *) report->parameters;
-
-    uint32_t color_count = params->color_count;
-    if (color_count > ANIMATION_REPORT_MAX_COLORS) {
-        color_count = ANIMATION_REPORT_MAX_COLORS;
-    }
-    if (color_count > MAX_FADE_TARGETS) {
-        color_count = MAX_FADE_TARGETS;
-    }
-
-    struct Labf colors[MAX_FADE_TARGETS];
-    for (uint8_t i = 0; i < color_count; i++) {
-        colors[i] = rgb_to_oklab(rgbi_to_f(params->colors[i]));
-    }
-
-    struct AnimationFade *fade = anim_fade_new_empty();
-    anim_fade_set_targets(fade, colors, color_count);
-    anim_fade_set_fade_time(fade, params->fade_time);
-    for (uint8_t i = 0; i < color_count; i++) {
-        anim_fade_set_hold_time(fade, i, params->hold_time);
-    }
-
+    struct AnimationFadeReportData *data = (struct AnimationFadeReportData *) report->data;
+    struct AnimationFade *fade = anim_fade_new_fade(data);
     ctrl_set_animation(ctrl, report->lamp_id, anim_fade, fade);
 }
 

@@ -45,8 +45,12 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
 // (Default)AnimationReport
 // ------------------------
 
-#define ANIMATION_REPORT_MAX_PARAMS 8
-#define ANIMATION_REPORT_MAX_COLORS 8
+/**
+ * The size of the opaque animation report data field. The total report must be
+ * no more than 63 bytes so it fits in the 64-byte USB limit when combined with
+ * the report ID byte.
+ */
+#define ANIMATION_REPORT_DATA_SIZE 60
 
 #define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, REPORT_TYPE, REPORT_USAGE) \
     HID_REPORT_ID   (REPORT_ID) \
@@ -58,18 +62,9 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
         /* Animation Type */ \
         HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_TYPE), \
         HID_ITEM_UINT8  (REPORT_TYPE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
-        /* Parameters */ \
-        HID_REPEAT(ANIMATION_REPORT_MAX_PARAMS, \
-            HID_USAGE   (HID_USAGE_VENDOR_12VRGB_ANIMATION_PARAMETER), \
-        ) \
-        HID_ITEM_INT32  (REPORT_TYPE, ANIMATION_REPORT_MAX_PARAMS, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
-        /* Colors */ \
-        HID_REPEAT(ANIMATION_REPORT_MAX_COLORS, \
-            HID_USAGE   (HID_USAGE_VENDOR_12VRGB_ANIMATION_COLOR_RED), \
-            HID_USAGE   (HID_USAGE_VENDOR_12VRGB_ANIMATION_COLOR_GREEN), \
-            HID_USAGE   (HID_USAGE_VENDOR_12VRGB_ANIMATION_COLOR_BLUE), \
-        ) \
-        HID_ITEM_UINT8  (REPORT_TYPE, 3*ANIMATION_REPORT_MAX_COLORS, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        /* Data */ \
+        HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_DATA), \
+        HID_ITEM_UINT8  (REPORT_TYPE, ANIMATION_REPORT_DATA_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
 #define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION(REPORT_ID) \
@@ -81,8 +76,7 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
 struct __attribute__ ((packed)) Vendor12VRGBAnimationReport {
     uint8_t lamp_id;
     uint8_t type;
-    int32_t parameters[ANIMATION_REPORT_MAX_PARAMS];
-    uint8_t colors[ANIMATION_REPORT_MAX_COLORS][3];
+    uint8_t data[ANIMATION_REPORT_DATA_SIZE];
 };
 
 #endif /* HID_VENDOR_REPORT_H_ */
