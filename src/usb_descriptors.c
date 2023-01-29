@@ -118,69 +118,70 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
 
 #define MAX_DESCRIPTOR_LENGTH 31
 
-// static string descriptors
+static char serial_num_str[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
+
 static char const *string_desc_arr[] = {
-    (const char[]) { 0x09, 0x04 },  // 0: English (0x0409)
-    "BlueKeyes",                    // 1: Manufacturer
-    "12VRGB HID Controller",        // 2: Product
-    "",                             // 3: Serial Number (placeholder)
+    [1] = "BlueKeyes",                    // Manufacturer
+    [2] = "12VRGB HID Controller",        // Product
+    [3] = serial_num_str,                 // Serial Number
 };
-
-static inline char hex_char(uint8_t v)
-{
-    return v < 0xA ? '0' + v : 'A' + v - 0xA;
-}
-
-static uint8_t get_serial_number_string(uint16_t *str)
-{
-    pico_unique_board_id_t id;
-    pico_get_unique_board_id(&id);
-
-    for (uint8_t i = 0; i < PICO_UNIQUE_BOARD_ID_SIZE_BYTES; i++) {
-        str[2*i] = hex_char(id.id[i] & 0x0F);
-        str[2*i+1] = hex_char((id.id[i] >> 4) & 0x0F);
-    }
-
-    return 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES;
-}
-
-// buffer for returning string descriptors
-static uint16_t _desc_str[MAX_DESCRIPTOR_LENGTH + 1];
 
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
 {
-    uint8_t chr_count = 0;
-    const char *str = NULL;
+    /*
+     * This function is based on the version in pico-sdk (pico_stdio_usb),
+     * which was originally based on a file originally part of the MicroPython
+     * project, http://micropython.org/
+     *
+     * The MIT License (MIT)
+     *
+     * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
+     * Copyright (c) 2019 Damien P. George
+     *
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in
+     * all copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+     * THE SOFTWARE.
+     */
 
+    // reusable buffer for returning strings
+    static uint16_t desc_str[MAX_DESCRIPTOR_LENGTH + 1];
+
+    if (!serial_num_str[0]) {
+        // load serial number if we haven't yet
+        pico_get_unique_board_id_string(serial_num_str, sizeof(serial_num_str));
+    }
     if (index >= sizeof(string_desc_arr)/sizeof(string_desc_arr[0])) {
         return NULL;
     }
-    switch (index) {
-        case 0:
-            memcpy(&_desc_str[1], string_desc_arr[0], 2);
-            chr_count = 1;
-            break;
 
-        case 3:
-            chr_count = get_serial_number_string(&_desc_str[1]);
-            break;
-
-        default:
-            str = string_desc_arr[index];
-
-            chr_count = strlen(str);
-            if (chr_count > MAX_DESCRIPTOR_LENGTH) {
-                chr_count = MAX_DESCRIPTOR_LENGTH;
-            }
-
-            for (uint8_t i = 0; i < chr_count; i++) {
-                _desc_str[1+i] = str[i];
-            }
-            break;
+    uint8_t len = 0;
+    if (index == 0) {
+        // first descriptor is a special language code (english)
+        desc_str[1] = 0x0409;
+        len = 1;
+    } else {
+        const char *str = string_desc_arr[index];
+        for (len = 0; len < MAX_DESCRIPTOR_LENGTH && str[len]; len++) {
+            desc_str[1+len] = str[len];
+        }
     }
 
     // first byte is length (including header), second byte is string type
-    _desc_str[0] = (TUSB_DESC_STRING << 8) | (2*chr_count + 2);
+    desc_str[0] = (TUSB_DESC_STRING << 8) | (2*len + 2);
 
-    return _desc_str;
+    return desc_str;
 }
