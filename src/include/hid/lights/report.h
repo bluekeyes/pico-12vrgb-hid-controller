@@ -29,8 +29,8 @@
     HID_USAGE_PAGE    (HID_USAGE_PAGE_LIGHTING), \
     HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY), \
     HID_COLLECTION    (HID_COLLECTION_APPLICATION), \
-        /* All fields in reports are non-negative */ \
-        HID_LOGICAL_MIN (0)
+        HID_LOGICAL_MIN     (0), \
+        HID_UNIT_EXPONENT   (0)
 
 // -------------------------
 // LampArrayAttributesReport

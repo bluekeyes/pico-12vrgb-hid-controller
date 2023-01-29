@@ -1,6 +1,11 @@
 import hid
 import struct
 
+def enumerate():
+    for d in hid.enumerate(vendor_id=0xcafe, product_id=0x4100):
+        for k, v in d.items():
+            print(f'{k}: {v}')
+
 def find_device_by_usage(usage_page):
     devices = [d for d in hid.enumerate(vendor_id=0xcafe, product_id=0x4100) if d['usage_page'] == usage_page]
     if len(devices) == 0:
@@ -36,17 +41,17 @@ def write_feature_report(d, report):
 
 def reset():
     d = find_vendor_device()
-    write_feature_report(d, bytes([0x07, 0b00000000]))
+    write_feature_report(d, bytes([0x30, 0b00000000]))
 
 
 def reset_bootsel():
     d = find_vendor_device()
-    write_feature_report(d, bytes([0x07, 0b00000001]))
+    write_feature_report(d, bytes([0x30, 0b00000001]))
 
 
 def reset_clear_flash():
     d = find_vendor_device()
-    write_feature_report(d, bytes([0x07, 0b00000010]))
+    write_feature_report(d, bytes([0x30, 0b00000010]))
 
 
 def set_autonomous_mode(enabled):
@@ -75,7 +80,7 @@ def update_lamp0(r, g, b):
 
 
 def set_animation(lamp_id, animation_type, params, colors, set_default=False):
-    report_id = 0x09 if set_default else 0x08
+    report_id = 0x32 if set_default else 0x31
 
     d = find_vendor_device()
     data = bytearray([report_id, lamp_id, animation_type])

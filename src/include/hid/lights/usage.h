@@ -1,10 +1,10 @@
+#ifndef HID_LIGHTS_USAGE_H_
+#define HID_LIGHTS_USAGE_H_
+
 /**
  * This file contains constants from the HID "Lighting and Illumination" usage
  * table. See Section 25 of the HID Usage Tables 1.3 document for details.
  */
-
-#ifndef HID_LIGHTS_USAGE_H_
-#define HID_LIGHTS_USAGE_H_
 
 #define HID_USAGE_PAGE_LIGHTING 0x59
 
@@ -78,4 +78,4 @@ enum {
 
 #define LAMP_UPDATE_COMPLETE        0x01
 
-#endif // HID_LIGHTS_USAGE_H_
+#endif /* HID_LIGHTS_USAGE_H_ */

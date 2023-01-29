@@ -21,8 +21,8 @@
     HID_USAGE_PAGE_N  (HID_USAGE_PAGE_VENDOR_12VRGB, 2), \
     HID_USAGE         (HID_USAGE_VENDOR_12VRGB_CONTROLLER), \
     HID_COLLECTION    (HID_COLLECTION_APPLICATION), \
-        /* All fields in reports are non-negative */ \
-        HID_LOGICAL_MIN (0)
+        HID_LOGICAL_MIN     (0), \
+        HID_UNIT_EXPONENT   (0)
 
 // -----------
 // ResetReport

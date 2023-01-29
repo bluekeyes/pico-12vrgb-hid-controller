@@ -7,6 +7,7 @@
 #include "device/specs.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
+#include "hid/sensor/report.h"
 #include "hid/vendor/report.h"
 
 #define USB_BCD 0x0200 // USB 2.0
@@ -56,13 +57,20 @@ uint8_t const desc_hid_report[] = {
         HID_REPORT_DESC_LAMP_ARRAY_CONTROL          (HID_REPORT_ID_LAMP_ARRAY_CONTROL),
     HID_COLLECTION_END,
 
+    // --------------------
+    // Sensors: Temperature
+    // --------------------
+    HID_COLLECTION_SENSOR,
+        HID_REPORT_DESC_ENVIRONMENTAL_TEMPERATURE   (HID_REPORT_ID_TEMPERATURE),
+    HID_COLLECTION_END,
+
     // -------------------------
     // Vendor 12VRGB: Controller
     // -------------------------
     HID_COLLECTION_VENDOR_12VRGB,
         HID_REPORT_DESC_VENDOR_12VRGB_RESET             (HID_REPORT_ID_VENDOR_12VRGB_RESET),
-        HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION         (HID_REPORT_ID_VENDOR_12VRGB_ANIMATION), 
-        HID_REPORT_DESC_VENDOR_12VRGB_DEFAULT_ANIMATION (HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION), 
+        HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION         (HID_REPORT_ID_VENDOR_12VRGB_ANIMATION),
+        HID_REPORT_DESC_VENDOR_12VRGB_DEFAULT_ANIMATION (HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION),
     HID_COLLECTION_END,
 };
 
