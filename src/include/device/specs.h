@@ -19,7 +19,7 @@
 /**
  * The number of independently addressable lamps (channels) in the system.
  */
-#define LAMP_COUNT 2
+#define LAMP_COUNT 4
 
 /**
  * The number of levels the for red, green, and blue color channels of each lamp.

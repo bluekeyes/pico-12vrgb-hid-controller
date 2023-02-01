@@ -36,6 +36,8 @@
 // Units: Micrometers
 #define CFG_RGB_LAMP_POSITIONS \
     {0, 0, 0}, \
+    {0, 0, 0}, \
+    {0, 0, 0}, \
     {0, 0, 0},
 
 // Lamp purpose flags. The number of entries must equal LAMP_COUNT
@@ -51,6 +53,8 @@
 //
 #define CFG_RGB_LAMP_PURPOSES \
     LAMP_PURPOSE_ACCENT, \
+    LAMP_PURPOSE_ACCENT, \
+    LAMP_PURPOSE_ACCENT, \
     LAMP_PURPOSE_ACCENT,
 
 // Map lamp RGB channels to GPIOs as (R, G, B) tuples. The number of entries
@@ -62,8 +66,10 @@
 // change this in software by swapping the positions for a given lamp.  Other
 // changes to this options will require hardware changes.
 #define CFG_RGB_LAMP_GPIO_MAPPING \
-    {3, 2, 4}, \
-    {6, 5, 7},
+    {11, 10, 12}, \
+    {14, 15, 13}, \
+    {20, 21, 19}, \
+    {17, 16, 18},
 
 // Set the divider for the PWM clock. The PWM counters wrap at the full 16-bit
 // value, so with a 125 MHz system clock, the default value gives a PWM
