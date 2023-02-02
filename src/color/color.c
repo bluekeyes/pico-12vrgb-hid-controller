@@ -4,12 +4,25 @@
 
 #include "color/color.h"
 
+/**
+ * @brief Converts a floating point RGB channel to an integer.
+ *
+ * The input is usually in [0.0, 1.0] but may be greater than 1.0 if converted
+ * from an oklab value. It must not be negative. The output is clamped to the
+ * range of a uint8_t.
+ */
+static inline uint8_t channelf_to_i(float c)
+{
+    uint16_t i = 255.f * c;
+    return i > 255 ? 255 : (uint8_t) i;
+}
+
 struct RGBi rgbf_to_i(struct RGBf rgb)
 {
     struct RGBi i = {
-        (uint8_t) (255.f * rgb.r),
-        (uint8_t) (255.f * rgb.g),
-        (uint8_t) (255.f * rgb.b),
+        channelf_to_i(rgb.r),
+        channelf_to_i(rgb.g),
+        channelf_to_i(rgb.b),
     };
     return i;
 }
