@@ -59,24 +59,15 @@ def set_autonomous_mode(enabled):
     write_output_report(d, bytes([0x06, 0x01 if enabled else 0x00]))
 
 
-def update_lamp0(r, g, b):
+def update_lamp(r, g, b, lamp_id=0):
     d = find_lighting_device()
-    write_output_report(d, bytes([
-        0x04, # report id
-        0x01, # lamp count
-        0x00, # id
-        0x00, # (empty id slot)
-        r,    # rgbi tuple
-        g,
-        b,
-        0x01,
-        0x00, # (empty rgbi slot)
-        0x00,
-        0x00,
-        0x00,
-        0x01, # update flags
-        0x00
-    ]))
+
+    report = bytearray([0x04, 0x01])
+    for c in [(r, g, b, 1)] + [(0, 0, 0, 0)] * 3:
+        report.extend(struct.pack('<BBBB', *c))
+    report.extend(structs.pack('<H', 0x0001))
+
+    write_output_report(d, report)
 
 
 def set_animation(lamp_id, animation_type, data, set_default=False):
