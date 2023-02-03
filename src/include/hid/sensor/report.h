@@ -104,4 +104,18 @@
         HID_INPUT           (HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
+struct __attribute__ ((packed)) EnvironmentalTemperatureFeatureReport {
+    uint8_t sensor_connection_type;
+    uint8_t reporting_state;
+    uint8_t power_state;
+    uint8_t sensor_state;
+    uint32_t report_interval;
+};
+
+struct __attribute__ ((packed)) EnvironmentalTemperatureInputReport {
+    uint8_t sensor_state;
+    uint8_t sensor_event;
+    int16_t temperature;
+};
+
 #endif /* HID_SENSOR_REPORT_H_ */
