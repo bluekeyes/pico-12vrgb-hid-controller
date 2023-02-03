@@ -5,11 +5,13 @@
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "controller/persist.h"
+#include "controller/sensor.h"
 #include "device/lamp.h"
 #include "device/temperature.h"
 #include "hid/vendor/report.h"
 
 controller_t ctrl;
+sensor_controller_t sensectrl;
 
 int main()
 {
@@ -19,6 +21,7 @@ int main()
     temperature_init();
 
     ctrl_init(&ctrl);
+    ctrl_sensor_init(&sensectrl);
     ctrl_persist_init();
 
     tusb_init();
@@ -34,6 +37,7 @@ int main()
     while (true) {
         tud_task();
         ctrl_task(&ctrl);
+        ctrl_sensor_task(&sensectrl);
     }
 
     return 0;

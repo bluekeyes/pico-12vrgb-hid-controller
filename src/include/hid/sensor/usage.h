@@ -56,7 +56,7 @@ enum {
     HID_USAGE_SENSOR_PROPERTY_POWER_STATE_D4_POWER_OFF                  = 0x855,
 };
 
-enum {
+enum SensorState {
     SENSOR_STATE_UNDEFINED      = 0x0,
     SENSOR_STATE_READY          = 0x1,
     SENSOR_STATE_NOT_AVAILABLE  = 0x2,
@@ -66,7 +66,7 @@ enum {
     SENSOR_STATE_ERROR          = 0x6,
 };
 
-enum {
+enum SensorEvent {
     SENSOR_EVENT_UNKNOWN            = 0x0,
     SENSOR_EVENT_STATE_CHANGED      = 0x1,
     SENSOR_EVENT_PROPERTY_CHANGED   = 0x2,
@@ -75,13 +75,13 @@ enum {
     SENSOR_EVENT_CHANGE_SENSITIVITY = 0x5,
 };
 
-enum {
+enum SensorConnectionType {
     SENSOR_CONNECTION_TYPE_PC_INTEGRATED    = 0x0,
     SENSOR_CONNECTION_TYPE_PC_ATTACHED      = 0x1,
     SENSOR_CONNECTION_TYPE_PC_EXTERNAL      = 0x2,
 };
 
-enum {
+enum SensorReportingState {
     SENSOR_REPORTING_STATE_REPORT_NO_EVENTS                 = 0x0,
     SENSOR_REPORTING_STATE_REPORT_ALL_EVENTS                = 0x1,
     SENSOR_REPORTING_STATE_REPORT_THRESHOLD_EVENTS          = 0x2,
@@ -90,7 +90,7 @@ enum {
     SENSOR_REPORTING_STATE_REPORT_WAKE_ON_THRESHOLD_EVENTS  = 0x5,
 };
 
-enum {
+enum SensorPowerState {
     SENSOR_POWER_STATE_UNDEFINED                    = 0x0,
     SENSOR_POWER_STATE_D0_FULL_POWER                = 0x1,
     SENSOR_POWER_STATE_D1_LOW_POWER                 = 0x2,

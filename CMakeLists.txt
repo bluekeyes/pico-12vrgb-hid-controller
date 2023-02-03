@@ -27,6 +27,7 @@ target_sources(rgb_controller PRIVATE
   src/controller/animations/fade.c
   src/controller/controller.c
   src/controller/persist.c
+  src/controller/sensor.c
   src/device/lamp.c
   src/device/temperature.c
   src/main.c

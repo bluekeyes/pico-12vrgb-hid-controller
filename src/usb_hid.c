@@ -8,6 +8,7 @@
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
 #include "controller/persist.h"
+#include "controller/sensor.h"
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/data.h"
@@ -22,6 +23,7 @@
 #define RESET_STD_REBOOT_DELAY 100
 
 extern controller_t ctrl;
+extern sensor_controller_t sensectrl;
 
 static uint16_t get_report_lamp_array_attributes(uint8_t *buffer, uint16_t reqlen)
 {
@@ -59,7 +61,7 @@ static uint16_t get_report_temperature(uint8_t *buffer, uint16_t reqlen)
     }
 
     struct EnvironmentalTemperatureInputReport *report = (struct EnvironmentalTemperatureInputReport *) buffer;
-    // TODO(bkeyes): implement this
+    ctrl_sensor_get_temperature(&sensectrl, report);
 
     return sizeof(struct EnvironmentalTemperatureInputReport);
 }
@@ -71,7 +73,7 @@ static uint16_t get_report_temperature_feature(uint8_t *buffer, uint16_t reqlen)
     }
 
     struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
-    // TODO(bkeyes): implement this
+    ctrl_sensor_get_temp_features(&sensectrl, report);
 
     return sizeof(struct EnvironmentalTemperatureFeatureReport);
 }
@@ -180,7 +182,10 @@ static void set_report_temperature_feature(uint8_t const *buffer, uint16_t bufsi
     }
 
     struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
-    // TODO(bkeyes): implement this
+
+    ctrl_sensor_set_temp_reporting_state(&sensectrl, report->reporting_state);
+    ctrl_sensor_set_temp_power_state(&sensectrl, report->power_state);
+    ctrl_sensor_set_temp_report_interval(&sensectrl, report->report_interval);
 }
 
 static void set_report_vendor_12vrgb_reset(uint8_t const *buffer, uint16_t bufsize)
