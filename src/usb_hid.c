@@ -14,6 +14,8 @@
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/lights/usage.h"
+#include "hid/sensor/report.h"
+#include "hid/sensor/usage.h"
 #include "hid/vendor/report.h"
 #include "hid/vendor/usage.h"
 
@@ -48,6 +50,30 @@ static uint16_t get_report_lamp_attributes_response(uint8_t *buffer, uint16_t re
     ctrl_get_lamp_attributes(&ctrl, report);
 
     return sizeof(struct LampAttributesResponseReport);
+}
+
+static uint16_t get_report_temperature(uint8_t *buffer, uint16_t reqlen)
+{
+    if (reqlen < sizeof(struct EnvironmentalTemperatureInputReport)) {
+        return 0;
+    }
+
+    struct EnvironmentalTemperatureInputReport *report = (struct EnvironmentalTemperatureInputReport *) buffer;
+    // TODO(bkeyes): implement this
+
+    return sizeof(struct EnvironmentalTemperatureInputReport);
+}
+
+static uint16_t get_report_temperature_feature(uint8_t *buffer, uint16_t reqlen)
+{
+    if (reqlen < sizeof(struct EnvironmentalTemperatureFeatureReport)) {
+        return 0;
+    }
+
+    struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
+    // TODO(bkeyes): implement this
+
+    return sizeof(struct EnvironmentalTemperatureFeatureReport);
 }
 
 static void set_report_lamp_attributes_request(uint8_t const *buffer, uint16_t bufsize)
@@ -147,6 +173,16 @@ static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsiz
     ctrl_set_autonomous_mode(&ctrl, HID_GET_FLAG(report->autonomous_mode) != 0);
 }
 
+static void set_report_temperature_feature(uint8_t const *buffer, uint16_t bufsize)
+{
+    if (bufsize < sizeof(struct EnvironmentalTemperatureFeatureReport)) {
+        return;
+    }
+
+    struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
+    // TODO(bkeyes): implement this
+}
+
 static void set_report_vendor_12vrgb_reset(uint8_t const *buffer, uint16_t bufsize)
 {
     if (bufsize < sizeof(struct Vendor12VRGBResetReport)) {
@@ -198,12 +234,26 @@ static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, ui
 // Return zero will cause the stack to STALL request
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
 {
-    switch (report_id) {
-    case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
-        return get_report_lamp_array_attributes(buffer, reqlen);
-    case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
-        return get_report_lamp_attributes_response(buffer, reqlen);
+    switch (report_type) {
+    case HID_REPORT_TYPE_INPUT:
+        switch (report_id) {
+        case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
+            return get_report_lamp_array_attributes(buffer, reqlen);
+        case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
+            return get_report_lamp_attributes_response(buffer, reqlen);
+        case HID_REPORT_ID_TEMPERATURE:
+            return get_report_temperature(buffer, reqlen);
+        }
+        break;
+
+    case HID_REPORT_TYPE_FEATURE:
+        switch (report_id) {
+        case HID_REPORT_ID_TEMPERATURE:
+            return get_report_temperature_feature(buffer, reqlen);
+        }
+        break;
     }
+
     return 0;
 }
 
@@ -234,6 +284,9 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 
     case HID_REPORT_TYPE_FEATURE:
         switch (report_id) {
+        case HID_REPORT_ID_TEMPERATURE:
+            set_report_temperature_feature(buffer, bufsize);
+            break;
         case HID_REPORT_ID_VENDOR_12VRGB_RESET:
             set_report_vendor_12vrgb_reset(buffer, bufsize);
             break;
