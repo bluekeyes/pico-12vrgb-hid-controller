@@ -100,4 +100,22 @@
 // Units: Hz
 #define CFG_RGB_ANIMATION_FRAME_RATE 120
 
+// The number of samples of the internal sensor to average for each
+// temperature reading.
+#define CFG_RGB_TEMP_SENSOR_SAMPLES 3
+
+// The actual voltage of the ADC reference voltage used for the temperature
+// sensor. This will be the value of the external reference or the measured
+// value of the particular Pi Pico power supply.
+//
+// Range: [1, 3.3]
+// Units: Volts
+#define CFG_RGB_TEMP_SENSOR_REF_VOLTAGE 3.3f
+
+// A fixed value to adjust measured temperatures by to account for differences
+// between RP2040 diodes or other factors.
+//
+// Units: Degrees Celsius
+#define CFG_RGB_TEMP_SENSOR_ADJUST 0.0f
+
 #endif

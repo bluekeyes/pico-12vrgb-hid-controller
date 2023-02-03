@@ -6,6 +6,7 @@
 #include "controller/controller.h"
 #include "controller/persist.h"
 #include "device/lamp.h"
+#include "device/temperature.h"
 #include "hid/vendor/report.h"
 
 controller_t ctrl;
@@ -14,9 +15,11 @@ int main()
 {
     stdio_init_all();
 
+    lamp_init();
+    temperature_init();
+
     ctrl_init(&ctrl);
     ctrl_persist_init();
-    lamp_init();
 
     tusb_init();
 

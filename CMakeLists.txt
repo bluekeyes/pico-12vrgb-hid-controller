@@ -28,6 +28,7 @@ target_sources(rgb_controller PRIVATE
   src/controller/controller.c
   src/controller/persist.c
   src/device/lamp.c
+  src/device/temperature.c
   src/main.c
   src/usb_descriptors.c
   src/usb_hid.c
@@ -42,6 +43,7 @@ pico_enable_stdio_uart(rgb_controller 1)
 
 # Add the standard library to the build
 target_link_libraries(rgb_controller
+  hardware_adc
   hardware_flash
   hardware_pwm
   hardware_watchdog
