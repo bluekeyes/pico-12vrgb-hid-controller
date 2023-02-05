@@ -10,7 +10,6 @@
 #include "controller/controller.h"
 #include "device/lamp.h"
 #include "device/specs.h"
-#include "hid/data.h"
 #include "hid/lights/report.h"
 
 static struct AnimationState get_initial_animation_state(void *);
@@ -154,21 +153,17 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseR
     ctrl->next_lamp_id = (lamp_id + 1) % LAMP_COUNT;
 
     report->lamp_id = lamp_id;
-    report->lamp_purpose = lamp_purposes[lamp_id];
-
-    HID_SET_FLAG(report->is_programmable);
-
     report->position_x = lamp_positions[lamp_id][0];
     report->position_y = lamp_positions[lamp_id][1];
     report->position_z = lamp_positions[lamp_id][2];
-
+    report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
+    report->lamp_purpose = lamp_purposes[lamp_id];
     report->red_level_count = LAMP_COLOR_LEVELS;
     report->green_level_count = LAMP_COLOR_LEVELS;
     report->blue_level_count = LAMP_COLOR_LEVELS;
     report->intensity_level_count = LAMP_INTENSITY_LEVELS;
-
-    report->update_latency = CFG_RGB_LAMP_UPDATE_LATENCY;
-    report->input_binding = 0x0000;
+    report->is_programmable = 0x01;
+    report->input_binding = 0x00;
 }
 
 void ctrl_update_lamp(controller_t *ctrl, uint8_t lamp_id, struct LampValue value, bool apply)

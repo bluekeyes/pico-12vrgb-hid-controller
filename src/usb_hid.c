@@ -11,7 +11,6 @@
 #include "controller/sensor.h"
 #include "device/lamp.h"
 #include "device/specs.h"
-#include "hid/data.h"
 #include "hid/descriptor.h"
 #include "hid/lights/report.h"
 #include "hid/lights/usage.h"
@@ -172,7 +171,7 @@ static void set_report_lamp_array_control(uint8_t const *buffer, uint16_t bufsiz
     }
 
     struct LampArrayControlReport *report = (struct LampArrayControlReport *) buffer;
-    ctrl_set_autonomous_mode(&ctrl, HID_GET_FLAG(report->autonomous_mode) != 0);
+    ctrl_set_autonomous_mode(&ctrl, report->autonomous_mode);
 }
 
 static void set_report_temperature_feature(uint8_t const *buffer, uint16_t bufsize)
@@ -242,10 +241,6 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
     switch (report_type) {
     case HID_REPORT_TYPE_INPUT:
         switch (report_id) {
-        case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
-            return get_report_lamp_array_attributes(buffer, reqlen);
-        case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
-            return get_report_lamp_attributes_response(buffer, reqlen);
         case HID_REPORT_ID_TEMPERATURE:
             return get_report_temperature(buffer, reqlen);
         }
@@ -253,6 +248,10 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 
     case HID_REPORT_TYPE_FEATURE:
         switch (report_id) {
+        case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
+            return get_report_lamp_array_attributes(buffer, reqlen);
+        case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
+            return get_report_lamp_attributes_response(buffer, reqlen);
         case HID_REPORT_ID_TEMPERATURE:
             return get_report_temperature_feature(buffer, reqlen);
         }
@@ -269,17 +268,11 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
     switch (report_type) {
     case HID_REPORT_TYPE_OUTPUT:
         switch (report_id) {
-        case HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST:
-            set_report_lamp_attributes_request(buffer, bufsize);
-            break;
         case HID_REPORT_ID_LAMP_MULTI_UPDATE:
             set_report_lamp_multi_update(buffer, bufsize);
             break;
         case HID_REPORT_ID_LAMP_RANGE_UPDATE:
             set_report_lamp_range_update(buffer, bufsize);
-            break;
-        case HID_REPORT_ID_LAMP_ARRAY_CONTROL:
-            set_report_lamp_array_control(buffer, bufsize);
             break;
         case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
             set_report_vendor_12vrgb_animation(buffer, bufsize);
@@ -289,6 +282,12 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 
     case HID_REPORT_TYPE_FEATURE:
         switch (report_id) {
+        case HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST:
+            set_report_lamp_attributes_request(buffer, bufsize);
+            break;
+        case HID_REPORT_ID_LAMP_ARRAY_CONTROL:
+            set_report_lamp_array_control(buffer, bufsize);
+            break;
         case HID_REPORT_ID_TEMPERATURE:
             set_report_temperature_feature(buffer, bufsize);
             break;

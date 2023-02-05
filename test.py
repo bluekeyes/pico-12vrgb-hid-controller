@@ -56,16 +56,17 @@ def reset_clear_flash():
 
 def set_autonomous_mode(enabled):
     d = find_lighting_device()
-    write_output_report(d, bytes([0x06, 0x01 if enabled else 0x00]))
+    write_feature_report(d, bytes([0x06, 0x01 if enabled else 0x00]))
 
 
 def update_lamp(r, g, b, lamp_id=0):
     d = find_lighting_device()
 
-    report = bytearray([0x04, 0x01, lamp_id, 0x00, 0x00, 0x00])
+    report = bytearray([0x04, 0x01])
+    report.extend(struct.pack('<H', 0x0001))
+    report.extend([lamp_id, 0x00, 0x00, 0x00])
     for c in [(r, g, b, 1)] + [(0, 0, 0, 0)] * 3:
         report.extend(struct.pack('<BBBB', *c))
-    report.extend(struct.pack('<H', 0x0001))
 
     write_output_report(d, report)
 
