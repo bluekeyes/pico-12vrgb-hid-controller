@@ -15,8 +15,8 @@
 
 void ctrl_sensor_init(sensor_controller_t *ctrl)
 {
-    ctrl->temp_sensor_reporting_state = SENSOR_REPORTING_STATE_REPORT_ALL_EVENTS;
-    ctrl->temp_sensor_power_state = SENSOR_POWER_STATE_D0_FULL_POWER;
+    ctrl->temp_sensor_reporting_state = SENSOR_REPORTING_STATE_REPORT_NO_EVENTS;
+    ctrl->temp_sensor_power_state = SENSOR_POWER_STATE_D1_LOW_POWER;
     ctrl->temp_sensor_report_interval = DEFAULT_TEMP_REPORT_INTERVAL_MS;
 }
 
