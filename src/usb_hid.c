@@ -265,6 +265,17 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
 {
+    // Received data on OUT endpoint, convert to standard format for processing
+    if (report_id == 0 && report_type == 0) {
+        if (bufsize == 0) {
+            return;
+        }
+        report_type = HID_REPORT_TYPE_OUTPUT;
+        report_id = buffer[0];
+        buffer++;
+        bufsize--;
+    }
+
     switch (report_type) {
     case HID_REPORT_TYPE_OUTPUT:
         switch (report_id) {
