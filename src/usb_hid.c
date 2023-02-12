@@ -72,7 +72,7 @@ static uint16_t get_report_temperature_feature(uint8_t *buffer, uint16_t reqlen)
     }
 
     struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
-    ctrl_sensor_get_temp_features(&sensectrl, report);
+    ctrl_sensor_get_features(&sensectrl, report);
 
     return sizeof(struct EnvironmentalTemperatureFeatureReport);
 }
@@ -182,9 +182,9 @@ static void set_report_temperature_feature(uint8_t const *buffer, uint16_t bufsi
 
     struct EnvironmentalTemperatureFeatureReport *report = (struct EnvironmentalTemperatureFeatureReport *) buffer;
 
-    ctrl_sensor_set_temp_reporting_state(&sensectrl, report->reporting_state);
-    ctrl_sensor_set_temp_power_state(&sensectrl, report->power_state);
-    ctrl_sensor_set_temp_report_interval(&sensectrl, report->report_interval);
+    ctrl_sensor_set_reporting_state(&sensectrl, report->reporting_state);
+    ctrl_sensor_set_power_state(&sensectrl, report->power_state);
+    ctrl_sensor_set_report_interval(&sensectrl, report->report_interval);
 }
 
 static void set_report_vendor_12vrgb_reset(uint8_t const *buffer, uint16_t bufsize)
