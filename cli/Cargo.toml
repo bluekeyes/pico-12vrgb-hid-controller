@@ -1,0 +1,6 @@
+[package]
+name = "pico-12vrgb-ctrl"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
