@@ -1,4 +1,6 @@
 use clap::{Args, Parser, Subcommand};
+use csscolorparser::{self, Color};
+use pico_12vrgb_ctrl::temperature;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -10,7 +12,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Control lights directly
-    LampArray(LampArrayArgs),
+    LampArray {
+        #[command(subcommand)]
+        command: LampArrayCommands,
+    },
 
     /// Manage built-in animations
     #[command(subcommand_value_name("TYPE"))]
@@ -23,27 +28,55 @@ enum Commands {
 
     /// Reset the controller hardware
     Reset(ResetArgs),
-}
 
-#[derive(Args)]
-struct LampArrayArgs {
-    #[command(subcommand)]
-    command: LampArrayCommands,
+    /// Read the internal temperature sensor
+    GetTemperature(GetTemperatureArgs),
 }
 
 #[derive(Subcommand)]
 enum LampArrayCommands {
     /// Set lamp array controls
-    SetControl,
+    SetControl {
+        /// Enable or disable autonomous mode
+        #[arg(long)]
+        autonomous: Option<bool>,
+    },
 
     /// Set lamp colors
-    Update,
+    Update {
+        /// The lamp ID to update; repeat to update more than one lamp. The number of lamps must
+        /// match the number of colors.
+        #[arg(long = "lamp", value_name = "ID")]
+        lamp_ids: Vec<u8>,
+
+        /// The new color of the lamp; repeat to update more than one lamp. The number of colors
+        /// must match the number of lamps.
+        ///
+        /// Colors are specified as CSS color strings. The alpha channel is ignored. To turn
+        /// off a lamp, set the color to black (#000000).
+        #[arg(long = "color", value_name = "COLOR")]
+        #[arg(value_parser = csscolorparser::parse)]
+        colors: Vec<Color>,
+    },
 
     /// Set a range of lamps to a color
-    UpdateRange,
+    UpdateRange {
+        /// The first lamp in the update range. If unset, use the first lamp on the device.
+        #[arg(long = "start", value_name = "ID")]
+        start_lamp_id: Option<u8>,
 
-    /// Turn off all lamps
-    Off,
+        /// The last lamp in the update range. If unset, use the last lamp on the device.
+        #[arg(long = "end", value_name = "ID")]
+        end_lamp_id: Option<u8>,
+
+        /// The new color of the lamps. If unset, turn off the lamps in the range.
+        ///
+        /// Colors are specified as CSS color strings. The alpha channel is ignored. To turn
+        /// off a lamp, set the color to black (#000000).
+        #[arg(long)]
+        #[arg(value_parser = csscolorparser::parse)]
+        color: Option<Color>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -122,9 +155,8 @@ struct FadeAnimationArgs {
 #[derive(Args)]
 struct SharedAnimationArgs {
     /// The lamp that will play this animation
-    #[arg(long)]
-    #[arg(value_name = "ID")]
-    lamp: u8,
+    #[arg(long = "lamp", value_name = "ID")]
+    lamp_id: u8,
 
     /// Save this animation in flash as the default for the lamp
     #[arg(long)]
@@ -142,6 +174,18 @@ struct ResetArgs {
     /// Clear all saved settings in flash
     #[arg(long)]
     clear_flash: bool,
+}
+
+#[derive(Args)]
+struct GetTemperatureArgs {
+    /// The units to use when printing the temperature
+    #[arg(short, long, default_value_t = temperature::Degrees::Celsius)]
+    #[arg(value_parser = temperature::Degrees::parse)]
+    units: temperature::Degrees,
+
+    /// How often to print the temperature, in seconds. If unset, print the current temperature
+    /// and exit.
+    interval: Option<u32>,
 }
 
 fn main() {
