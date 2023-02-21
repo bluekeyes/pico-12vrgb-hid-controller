@@ -1,5 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
+use crate::device::{self, Device, Report, ResetReport};
 use crate::temperature;
 
 #[derive(Parser)]
@@ -7,16 +8,36 @@ use crate::temperature;
 pub struct Root {
     #[command(subcommand)]
     pub command: Commands,
+
+    /// Override the USB vendor ID for the device
+    #[arg(long, value_name = "ID", global = true)]
+    pub vendor_id: Option<u16>,
+
+    /// Override the USB product ID for the device
+    #[arg(long, value_name = "ID", global = true)]
+    pub product_id: Option<u16>,
 }
 
 impl Root {
-    pub fn run(&self) {
+    pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let vid = self.vendor_id.unwrap_or(device::DEFAULT_VENDOR_ID);
+        let pid = self.product_id.unwrap_or(device::DEFAULT_PRODUCT_ID);
+
         match &self.command {
-            Commands::Reset(args) => println!(
-                "Resetting! bootsel={0} clear_flash={1}",
-                args.bootsel, args.clear_flash
-            ),
-            _ => todo!(),
+            Commands::LampArray { command: _ } => todo!(),
+
+            Commands::SetAnimation { animation_type: _ } => todo!(),
+
+            Commands::Reset(args) => Device::open(vid, pid)
+                .and_then(|d| {
+                    d.send_report(Report::Reset(ResetReport {
+                        bootsel: args.bootsel,
+                        clear_flash: args.clear_flash,
+                    }))
+                })
+                .map_err(From::from),
+
+            Commands::GetTemperature(_) => todo!(),
         }
     }
 }

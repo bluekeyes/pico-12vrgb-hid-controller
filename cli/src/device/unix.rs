@@ -1,14 +1,13 @@
-use crate::device::Report;
-use std::error::Error;
+use crate::device::{Error, Report};
 
 pub struct Device {}
 
 impl Device {
-    pub fn find() -> Result<Option<Device>, Box<dyn Error>> {
+    pub fn open(vendor_id: u16, product_id: u16) -> Result<Device, Error> {
         unimplemented!();
     }
 
-    pub fn send_report(&self, report: Report) -> Result<(), Box<dyn Error>> {
+    pub fn send_report(&self, report: Report) -> Result<(), Error> {
         unimplemented!();
     }
 }

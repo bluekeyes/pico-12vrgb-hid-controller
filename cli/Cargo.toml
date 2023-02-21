@@ -10,5 +10,9 @@ csscolorparser = "0.6.2"
 [target.'cfg(windows)'.dependencies.windows]
 version = "0.44.0"
 features = [
-    "Devices_Enumeration"
+    "Devices_Enumeration",
+    "Devices_HumanInterfaceDevice",
+    "Foundation_Collections",
+    "Storage",
+    "Storage_Streams",
 ]
