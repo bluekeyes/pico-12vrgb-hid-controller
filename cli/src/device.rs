@@ -64,6 +64,10 @@ impl Device {
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
         self.d.send_report(report)
     }
+
+    pub fn read_temperature(&self) -> Result<i16, Error> {
+        self.d.read_temperature()
+    }
 }
 
 pub enum Report {

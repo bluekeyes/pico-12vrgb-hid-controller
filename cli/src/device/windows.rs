@@ -4,6 +4,9 @@ use windows::Devices::Enumeration::DeviceInformation;
 use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport};
 use windows::Storage::FileAccessMode;
 use windows::Storage::Streams::{ByteOrder, DataWriter, IBuffer};
+use windows::Win32::Devices::Sensors::{self, ISensorManager};
+use windows::Win32::System::Com;
+use windows::Win32::UI::Shell::PropertiesSystem::PROPERTYKEY;
 
 pub struct Device {
     vendor: HidDevice,
@@ -18,6 +21,11 @@ impl From<windows::core::Error> for Error {
 
 impl Device {
     pub fn open(vendor_id: u16, product_id: u16) -> Result<Device, Error> {
+        unsafe {
+            // Initialize COM thread for later use
+            Com::CoInitializeEx(None, Com::COINIT_MULTITHREADED)?;
+        }
+
         let vendor_filter = HidDevice::GetDeviceSelectorVidPid(
             hid::usage_page::VENDOR,
             hid::usage::VENDOR_12VRGB_CONTROLLER,
@@ -66,6 +74,30 @@ impl Device {
                 self.lamp_array.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
+        }
+    }
+
+    pub fn read_temperature(&self) -> Result<i16, Error> {
+        const TEMPERATURE_PID: u32 = 2;
+
+        unsafe {
+            let sensor_manager: ISensorManager =
+                Com::CoCreateInstance(&Sensors::SensorManager, None, Com::CLSCTX_INPROC_SERVER)?;
+
+            let sensors = sensor_manager.GetSensorsByType(&Sensors::GUID_SensorType_Temperature)?;
+            let sensor = if sensors.GetCount()? > 0 {
+                // TODO(bkeyes): figure out how to get our sensor, not just the first one...
+                sensors.GetAt(0)?
+            } else {
+                return Err(Error::NotFound);
+            };
+
+            let value = sensor.GetData()?.GetSensorValue(&PROPERTYKEY {
+                fmtid: Sensors::SENSOR_DATA_TYPE_ENVIRONMENTAL_GUID,
+                pid: TEMPERATURE_PID,
+            })?;
+
+            Ok((100.0 * value.Anonymous.Anonymous.Anonymous.fltVal) as i16)
         }
     }
 }

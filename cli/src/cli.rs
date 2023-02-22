@@ -51,7 +51,11 @@ impl Root {
                 }))
                 .map_err(From::from),
 
-            Commands::GetTemperature(_) => todo!(),
+            // TODO(bkeyes): implement polling
+            Commands::GetTemperature(args) => d
+                .read_temperature()
+                .and_then(|raw| Ok(println!("{:.2}", args.units.convert_raw(raw))))
+                .map_err(From::from),
         }
     }
 }
