@@ -18,7 +18,6 @@ pub mod hid {
 
     pub mod usage {
         pub const VENDOR_12VRGB_CONTROLLER: u16 = 0x01;
-        pub const VENDOR_12VRGB_RESET_FLAGS: u16 = 0x03;
     }
 }
 

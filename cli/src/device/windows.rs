@@ -1,7 +1,9 @@
 use crate::device::{hid, Error, Report};
 use windows::core::HSTRING;
-use windows::Devices::{Enumeration::DeviceInformation, HumanInterfaceDevice::HidDevice};
+use windows::Devices::Enumeration::DeviceInformation;
+use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport};
 use windows::Storage::FileAccessMode;
+use windows::Storage::Streams::{ByteOrder, DataWriter, IBuffer};
 
 pub struct Device {
     vendor: HidDevice,
@@ -31,29 +33,14 @@ impl Device {
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
         match report {
             Report::Reset(reset) => {
-                let r = self.vendor.CreateFeatureReportById(hid::report::VENDOR_12VRGB_RESET)?;
+                let r = self
+                    .vendor
+                    .CreateFeatureReportById(hid::report::VENDOR_12VRGB_RESET)?;
 
-                // TODO(bkeyes): the data value seems to always be the size of
-                // the largest report of the particular type. If using the
-                // control API will not work (e.g. due to repeated fields with a
-                // single usage), the code will have to pad out the buffer to
-                // match the expected lenght
+                ReportWriter::new(&r)?.write_byte(reset.flags())?.close()?;
 
-                /*
-                let data = DataWriter::new()?;
-                data.WriteByte(hid::report::VENDOR_12VRGB_RESET as u8)?;
-                data.WriteByte(reset.flags())?;
-                data.WriteBytes(&vec![0; 61])?;
-                r.SetData(&data.DetachBuffer()?)?;
-                */
-
-                let flags = r.GetNumericControl(hid::usage_page::VENDOR, hid::usage::VENDOR_12VRGB_RESET_FLAGS)?;
-                flags.SetValue(reset.flags() as i64)?;
-
-                match self.vendor.SendFeatureReportAsync(&r)?.get() {
-                    Ok(_) => Ok(()),
-                    Err(err) => Err(From::from(err)),
-                }
+                self.vendor.SendFeatureReportAsync(&r)?.get()?;
+                Ok(())
             }
         }
     }
@@ -65,5 +52,61 @@ fn get_device_from_filter(aqs: &HSTRING) -> Result<DeviceInformation, Error> {
         Err(Error::NotFound)
     } else {
         Ok(devices.GetAt(0)?)
+    }
+}
+
+trait HidReport {
+    fn report_id(&self) -> Result<u16, Error>;
+    fn report_length(&self) -> Result<u32, Error>;
+    fn set_data(&self, data: &IBuffer) -> Result<(), Error>;
+}
+
+impl HidReport for HidFeatureReport {
+    fn report_id(&self) -> Result<u16, Error> {
+        self.Id().map_err(From::from)
+    }
+
+    fn report_length(&self) -> Result<u32, Error> {
+        self.Data()?.Length().map_err(From::from)
+    }
+
+    fn set_data(&self, data: &IBuffer) -> Result<(), Error> {
+        self.SetData(data).map_err(From::from)
+    }
+}
+
+struct ReportWriter<'a> {
+    report: &'a dyn HidReport,
+    data: DataWriter,
+    length: u32,
+}
+
+impl<'a> ReportWriter<'a> {
+    fn new(report: &dyn HidReport) -> Result<ReportWriter, Error> {
+        let data = DataWriter::new()?;
+        data.SetByteOrder(ByteOrder::LittleEndian)?;
+        data.WriteByte(report.report_id()? as u8)?;
+
+        Ok(ReportWriter {
+            report,
+            data,
+            length: 1,
+        })
+    }
+
+    fn write_byte(mut self, value: u8) -> Result<Self, Error> {
+        self.data.WriteByte(value)?;
+        self.length += 1;
+        Ok(self)
+    }
+
+    fn close(self) -> Result<(), Error> {
+        let padding = self.report.report_length()? - self.length;
+        if padding > 0 {
+            self.data.WriteBytes(&vec![0; padding as usize])?;
+        }
+        self.report
+            .set_data(&self.data.DetachBuffer()?)
+            .map_err(From::from)
     }
 }
