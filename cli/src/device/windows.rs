@@ -7,6 +7,7 @@ use windows::Storage::Streams::{ByteOrder, DataWriter, IBuffer};
 
 pub struct Device {
     vendor: HidDevice,
+    lamp_array: HidDevice,
 }
 
 impl From<windows::core::Error> for Error {
@@ -24,10 +25,20 @@ impl Device {
             product_id,
         )?;
 
+        let lamp_array_filter = HidDevice::GetDeviceSelectorVidPid(
+            hid::usage_page::LIGHTING,
+            hid::usage::LIGHTING_LAMP_ARRAY,
+            vendor_id,
+            product_id,
+        )?;
+
         let vendor_id = get_device_from_filter(&vendor_filter)?.Id()?;
         let vendor = HidDevice::FromIdAsync(&vendor_id, FileAccessMode::ReadWrite)?.get()?;
 
-        Ok(Device { vendor })
+        let lamp_arry_id = get_device_from_filter(&lamp_array_filter)?.Id()?;
+        let lamp_array = HidDevice::FromIdAsync(&lamp_arry_id, FileAccessMode::ReadWrite)?.get()?;
+
+        Ok(Device { vendor, lamp_array })
     }
 
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
@@ -40,6 +51,19 @@ impl Device {
                 ReportWriter::new(&r)?.write_byte(reset.flags())?.close()?;
 
                 self.vendor.SendFeatureReportAsync(&r)?.get()?;
+                Ok(())
+            }
+
+            Report::LampArrayControl(ctrl) => {
+                let r = self
+                    .lamp_array
+                    .CreateFeatureReportById(hid::report::LAMP_ARRAY_CONTROL)?;
+
+                ReportWriter::new(&r)?
+                    .write_byte(if ctrl.autonomous { 1 } else { 0 })?
+                    .close()?;
+
+                self.lamp_array.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
         }

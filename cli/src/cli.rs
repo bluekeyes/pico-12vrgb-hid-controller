@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-use crate::device::{self, Device, Report, ResetReport};
+use crate::device::{self, Device, LampArrayControlReport, Report, ResetReport};
 use crate::temperature;
 
 #[derive(Parser)]
@@ -23,18 +23,32 @@ impl Root {
         let vid = self.vendor_id.unwrap_or(device::DEFAULT_VENDOR_ID);
         let pid = self.product_id.unwrap_or(device::DEFAULT_PRODUCT_ID);
 
+        let d = Device::open(vid, pid)?;
+
         match &self.command {
-            Commands::LampArray { command: _ } => todo!(),
+            Commands::LampArray { command } => match command {
+                lamparray::Commands::SetControl(args) => {
+                    if let Some(autonomous) = args.autonomous {
+                        d.send_report(Report::LampArrayControl(LampArrayControlReport {
+                            autonomous,
+                        }))
+                        .map_err(From::from)
+                    } else {
+                        Ok(())
+                    }
+                }
+
+                lamparray::Commands::Update(_) => todo!(),
+                lamparray::Commands::UpdateRange(_) => todo!(),
+            },
 
             Commands::SetAnimation { animation_type: _ } => todo!(),
 
-            Commands::Reset(args) => Device::open(vid, pid)
-                .and_then(|d| {
-                    d.send_report(Report::Reset(ResetReport {
-                        bootsel: args.bootsel,
-                        clear_flash: args.clear_flash,
-                    }))
-                })
+            Commands::Reset(args) => d
+                .send_report(Report::Reset(ResetReport {
+                    bootsel: args.bootsel,
+                    clear_flash: args.clear_flash,
+                }))
                 .map_err(From::from),
 
             Commands::GetTemperature(_) => todo!(),
@@ -86,7 +100,7 @@ mod lamparray {
     pub struct SetControlArgs {
         /// Enable or disable autonomous mode
         #[arg(long)]
-        autonomous: Option<bool>,
+        pub autonomous: Option<bool>,
     }
 
     #[derive(Args)]

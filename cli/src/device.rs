@@ -9,14 +9,17 @@ pub const DEFAULT_PRODUCT_ID: u16 = 0x4100;
 
 pub mod hid {
     pub mod report {
+        pub const LAMP_ARRAY_CONTROL: u16 = 0x06;
         pub const VENDOR_12VRGB_RESET: u16 = 0x30;
     }
 
     pub mod usage_page {
+        pub const LIGHTING: u16 = 0x59;
         pub const VENDOR: u16 = 0xFF00;
     }
 
     pub mod usage {
+        pub const LIGHTING_LAMP_ARRAY: u16 = 0x01;
         pub const VENDOR_12VRGB_CONTROLLER: u16 = 0x01;
     }
 }
@@ -65,6 +68,7 @@ impl Device {
 
 pub enum Report {
     Reset(ResetReport),
+    LampArrayControl(LampArrayControlReport),
 }
 
 pub struct ResetReport {
@@ -87,4 +91,8 @@ impl ResetReport {
         }
         flags
     }
+}
+
+pub struct LampArrayControlReport {
+    pub autonomous: bool,
 }
