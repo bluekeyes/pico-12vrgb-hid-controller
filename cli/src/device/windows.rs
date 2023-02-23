@@ -1,7 +1,7 @@
 use crate::device::{hid, Error, Report};
 use windows::core::HSTRING;
 use windows::Devices::Enumeration::DeviceInformation;
-use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport};
+use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport, HidOutputReport};
 use windows::Storage::FileAccessMode;
 use windows::Storage::Streams::{ByteOrder, DataWriter, IBuffer};
 use windows::Win32::Devices::Sensors::{self, ISensorManager};
@@ -52,26 +52,55 @@ impl Device {
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
         match report {
             Report::Reset(reset) => {
-                let r = self
-                    .vendor
-                    .CreateFeatureReportById(hid::report::VENDOR_12VRGB_RESET)?;
+                let d = &self.vendor;
+                let r = d.CreateFeatureReportById(hid::report::VENDOR_12VRGB_RESET)?;
 
                 ReportWriter::new(&r)?.write_byte(reset.flags())?.close()?;
 
-                self.vendor.SendFeatureReportAsync(&r)?.get()?;
+                d.SendFeatureReportAsync(&r)?.get()?;
+                Ok(())
+            }
+
+            Report::LampArrayMultiUpdate(update) => {
+                let d = &self.lamp_array;
+                let r = d.CreateOutputReportById(hid::report::LAMP_ARRAY_MULTI_UPDATE)?;
+
+                let colors: Vec<u8> = update.colors.iter().flat_map(<[u8; 4]>::from).collect();
+                ReportWriter::new(&r)?
+                    .write_byte(update.count)?
+                    .write_u16(update.flags)?
+                    .write_bytes(&update.lamp_ids)?
+                    .write_bytes(&colors)?
+                    .close()?;
+
+                d.SendOutputReportAsync(&r)?.get()?;
+                Ok(())
+            }
+
+            Report::LampArrayRangeUpdate(update) => {
+                let d = &self.lamp_array;
+                let r = d.CreateOutputReportById(hid::report::LAMP_ARRAY_RANGE_UPDATE)?;
+
+                ReportWriter::new(&r)?
+                    .write_u16(update.flags)?
+                    .write_byte(update.lamp_id_start)?
+                    .write_byte(update.lamp_id_end)?
+                    .write_bytes(&<[u8; 4]>::from(&update.color))?
+                    .close()?;
+
+                d.SendOutputReportAsync(&r)?.get()?;
                 Ok(())
             }
 
             Report::LampArrayControl(ctrl) => {
-                let r = self
-                    .lamp_array
-                    .CreateFeatureReportById(hid::report::LAMP_ARRAY_CONTROL)?;
+                let d = &self.lamp_array;
+                let r = d.CreateFeatureReportById(hid::report::LAMP_ARRAY_CONTROL)?;
 
                 ReportWriter::new(&r)?
                     .write_byte(if ctrl.autonomous { 1 } else { 0 })?
                     .close()?;
 
-                self.lamp_array.SendFeatureReportAsync(&r)?.get()?;
+                d.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
         }
@@ -131,6 +160,20 @@ impl HidReport for HidFeatureReport {
     }
 }
 
+impl HidReport for HidOutputReport {
+    fn report_id(&self) -> Result<u16, Error> {
+        self.Id().map_err(From::from)
+    }
+
+    fn report_length(&self) -> Result<u32, Error> {
+        self.Data()?.Length().map_err(From::from)
+    }
+
+    fn set_data(&self, data: &IBuffer) -> Result<(), Error> {
+        self.SetData(data).map_err(From::from)
+    }
+}
+
 struct ReportWriter<'a> {
     report: &'a dyn HidReport,
     data: DataWriter,
@@ -153,6 +196,18 @@ impl<'a> ReportWriter<'a> {
     fn write_byte(mut self, value: u8) -> Result<Self, Error> {
         self.data.WriteByte(value)?;
         self.length += 1;
+        Ok(self)
+    }
+
+    fn write_bytes(mut self, value: &[u8]) -> Result<Self, Error> {
+        self.data.WriteBytes(value)?;
+        self.length += value.len() as u32;
+        Ok(self)
+    }
+
+    fn write_u16(mut self, value: u16) -> Result<Self, Error> {
+        self.data.WriteUInt16(value)?;
+        self.length += 2;
         Ok(self)
     }
 

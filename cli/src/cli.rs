@@ -1,7 +1,7 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{self, Args, CommandFactory, Parser, Subcommand};
 use std::{thread, time::Duration};
 
-use crate::device::{self, Device, LampArrayControlReport, Report, ResetReport};
+use crate::device::{self, Device, Report};
 use crate::temperature;
 
 #[derive(Parser)]
@@ -30,7 +30,7 @@ impl Root {
             Commands::LampArray { command } => match command {
                 lamparray::Commands::SetControl(args) => {
                     if let Some(autonomous) = args.autonomous {
-                        d.send_report(Report::LampArrayControl(LampArrayControlReport {
+                        d.send_report(Report::LampArrayControl(device::LampArrayControlReport {
                             autonomous,
                         }))
                         .map_err(From::from)
@@ -39,14 +39,74 @@ impl Root {
                     }
                 }
 
-                lamparray::Commands::Update(_) => todo!(),
-                lamparray::Commands::UpdateRange(_) => todo!(),
+                lamparray::Commands::Update(args) => {
+                    let count = args.lamp_ids.len();
+
+                    if count != args.colors.len() {
+                        let mut err = Root::command();
+                        err.error(
+                            clap::error::ErrorKind::ArgumentConflict,
+                            "The number of colors must match the number of lamps",
+                        )
+                        .exit();
+                    }
+
+                    if count > device::MULTI_UPDATE_LAMP_COUNT {
+                        let mut err = Root::command();
+                        err.error(
+                            clap::error::ErrorKind::TooManyValues,
+                            format!(
+                                "The number of lamps must be at most {}",
+                                device::MULTI_UPDATE_LAMP_COUNT
+                            ),
+                        )
+                        .exit();
+                    }
+
+                    let mut lamp_ids = [0u8; device::MULTI_UPDATE_LAMP_COUNT];
+                    lamp_ids[0..count].copy_from_slice(&args.lamp_ids);
+
+                    let mut colors = [device::RGBI::zero(); device::MULTI_UPDATE_LAMP_COUNT];
+                    colors[0..count].copy_from_slice(
+                        &args
+                            .colors
+                            .iter()
+                            .map(<device::RGBI>::from)
+                            .collect::<Vec<_>>(),
+                    );
+
+                    d.send_report(Report::LampArrayMultiUpdate(
+                        device::LampArrayMultiUpdateReport {
+                            count: args.lamp_ids.len() as u8,
+                            flags: 0x0001, // TODO(bkeyes): make a constant
+                            lamp_ids,
+                            colors,
+                        },
+                    ))
+                    .map_err(From::from)
+                }
+
+                lamparray::Commands::UpdateRange(args) => {
+                    d.send_report(Report::LampArrayRangeUpdate(
+                        device::LampArrayRangeUpdateReport {
+                            flags: 0x0001, // TODO(bkeyes): make a constant
+                            lamp_id_start: args.lamp_id_start.unwrap_or(0),
+                            lamp_id_end: args.lamp_id_end.unwrap_or(device::LAMP_COUNT - 1),
+                            color: args
+                                .color
+                                .as_ref()
+                                .map(From::from)
+                                .unwrap_or(device::RGBI::zero()),
+                        },
+                    ))
+                    .map_err(From::from)
+                }
             },
 
             Commands::SetAnimation { animation_type: _ } => todo!(),
 
             Commands::Reset(args) => d
-                .send_report(Report::Reset(ResetReport {
+                .send_report(Report::Reset(device::ResetReport {
                     bootsel: args.bootsel,
                     clear_flash: args.clear_flash,
                 }))
@@ -115,7 +175,7 @@ mod lamparray {
         /// The lamp ID to update; repeat to update more than one lamp. The number of lamps must
         /// match the number of colors.
         #[arg(long = "lamp", value_name = "ID")]
-        lamp_ids: Vec<u8>,
+        pub lamp_ids: Vec<u8>,
 
         /// The new color of the lamp; repeat to update more than one lamp. The number of colors
         /// must match the number of lamps.
@@ -124,18 +184,18 @@ mod lamparray {
         /// off a lamp, set the color to black (#000000).
         #[arg(long = "color", value_name = "COLOR")]
         #[arg(value_parser = csscolorparser::parse)]
-        colors: Vec<Color>,
+        pub colors: Vec<Color>,
     }
 
     #[derive(Args)]
     pub struct UpdateRangeArgs {
         /// The first lamp in the update range. If unset, use the first lamp on the device.
         #[arg(long = "start", value_name = "ID")]
-        start_lamp_id: Option<u8>,
+        pub lamp_id_start: Option<u8>,
 
         /// The last lamp in the update range. If unset, use the last lamp on the device.
         #[arg(long = "end", value_name = "ID")]
-        end_lamp_id: Option<u8>,
+        pub lamp_id_end: Option<u8>,
 
         /// The new color of the lamps. If unset, turn off the lamps in the range.
         ///
@@ -143,7 +203,7 @@ mod lamparray {
         /// off a lamp, set the color to black (#000000).
         #[arg(long)]
         #[arg(value_parser = csscolorparser::parse)]
-        color: Option<Color>,
+        pub color: Option<Color>,
     }
 }
 
