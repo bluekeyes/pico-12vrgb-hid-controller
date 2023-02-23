@@ -1,4 +1,5 @@
 use clap::{Args, Parser, Subcommand};
+use std::{thread, time::Duration};
 
 use crate::device::{self, Device, LampArrayControlReport, Report, ResetReport};
 use crate::temperature;
@@ -51,11 +52,13 @@ impl Root {
                 }))
                 .map_err(From::from),
 
-            // TODO(bkeyes): implement polling
-            Commands::GetTemperature(args) => d
-                .read_temperature()
-                .and_then(|raw| Ok(println!("{:.2}", args.units.convert_raw(raw))))
-                .map_err(From::from),
+            Commands::GetTemperature(args) => loop {
+                println!("{:.2}", args.units.convert_raw(d.read_temperature()?));
+                match args.interval {
+                    Some(interval) => thread::sleep(Duration::from_secs(interval as u64)),
+                    None => return Ok(()),
+                }
+            },
         }
     }
 }
