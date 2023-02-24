@@ -1,4 +1,5 @@
 use clap::{self, Args, CommandFactory, Parser, Subcommand};
+use std::ops::RangeInclusive;
 use std::{thread, time::Duration};
 
 use crate::device::{self, Device, Report};
@@ -145,6 +146,7 @@ pub enum Commands {
 }
 
 mod lamparray {
+    use crate::cli;
     use clap::{Args, Subcommand};
     use csscolorparser::{self, Color};
 
@@ -172,6 +174,7 @@ mod lamparray {
         /// The lamp ID to update; repeat to update more than one lamp. The number of lamps must
         /// match the number of colors.
         #[arg(long = "lamp", value_name = "ID")]
+        #[arg(value_parser = cli::lamp_id_parser)]
         pub lamp_ids: Vec<u8>,
 
         /// The new color of the lamp; repeat to update more than one lamp. The number of colors
@@ -188,10 +191,12 @@ mod lamparray {
     pub struct UpdateRangeArgs {
         /// The first lamp in the update range. If unset, use the first lamp on the device.
         #[arg(long = "start", value_name = "ID")]
+        #[arg(value_parser = cli::lamp_id_parser)]
         pub lamp_id_start: Option<u8>,
 
         /// The last lamp in the update range. If unset, use the last lamp on the device.
         #[arg(long = "end", value_name = "ID")]
+        #[arg(value_parser = cli::lamp_id_parser)]
         pub lamp_id_end: Option<u8>,
 
         /// The new color of the lamps. If unset, turn off the lamps in the range.
@@ -205,6 +210,9 @@ mod lamparray {
 }
 
 pub mod animation {
+    use std::ops::RangeInclusive;
+
+    use crate::cli;
     use clap::{Args, Subcommand};
     use csscolorparser::{self, Color};
 
@@ -260,18 +268,22 @@ pub mod animation {
 
         /// The on fade time (A) in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         on_fade_time: Option<f64>,
 
         /// The on time (B) in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         on_time: Option<f64>,
 
         /// The off fade time (C) in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         off_fade_time: Option<f64>,
 
         /// The off time (D) in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         off_time: Option<f64>,
     }
 
@@ -289,10 +301,12 @@ pub mod animation {
 
         /// The fade time in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         fade_time: Option<f64>,
 
         /// The hold time in fractional seconds
         #[arg(long, value_name = "SECONDS")]
+        #[arg(value_parser = animation_time_parser)]
         hold_time: Option<f64>,
     }
 
@@ -300,11 +314,44 @@ pub mod animation {
     pub struct SharedArgs {
         /// The lamp that will play this animation
         #[arg(long = "lamp", value_name = "ID")]
+        #[arg(value_parser = cli::lamp_id_parser)]
         lamp_id: u8,
 
         /// Save this animation in flash as the default for the lamp
         #[arg(long)]
         default: bool,
+    }
+
+    /// Parses a fractional seconds string that must convert to u16 milliseconds.
+    fn animation_time_parser(value: &str) -> Result<f64, String> {
+        const RANGE: RangeInclusive<f64> = 0.0..=(u16::MAX as f64) / 1000.0;
+
+        let s: f64 = value.parse().map_err(|_| "invalid time value")?;
+        if RANGE.contains(&s) {
+            Ok(s)
+        } else {
+            Err(format!(
+                "time must be between {:.3} and {:.3} seconds",
+                RANGE.start(),
+                RANGE.end(),
+            ))
+        }
+    }
+}
+
+/// Parses a 1-indexed lamp/channel string to 0-indexed lamp ID
+fn lamp_id_parser(value: &str) -> Result<u8, String> {
+    const RANGE: RangeInclusive<usize> = 1..=(Device::LAMP_COUNT as usize);
+
+    let id: usize = value.parse().map_err(|_| "invalid lamp number")?;
+    if RANGE.contains(&id) {
+        Ok((id - 1) as u8)
+    } else {
+        Err(format!(
+            "lamp number must be in range {}-{}",
+            RANGE.start(),
+            RANGE.end()
+        ))
     }
 }
 
