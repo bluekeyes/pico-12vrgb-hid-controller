@@ -40,8 +40,9 @@ impl Root {
                 }
 
                 lamparray::Commands::Update(args) => {
-                    let count = args.lamp_ids.len();
+                    const MAX_COUNT: usize = device::LampArrayMultiUpdateReport::MAX_COUNT;
 
+                    let count = args.lamp_ids.len();
                     if count != args.colors.len() {
                         let mut err = Root::command();
                         err.error(
@@ -50,23 +51,19 @@ impl Root {
                         )
                         .exit();
                     }
-
-                    if count > device::MULTI_UPDATE_LAMP_COUNT {
+                    if count > MAX_COUNT {
                         let mut err = Root::command();
                         err.error(
                             clap::error::ErrorKind::TooManyValues,
-                            format!(
-                                "The number of lamps must be at most {}",
-                                device::MULTI_UPDATE_LAMP_COUNT
-                            ),
+                            format!("The number of lamps must be at most {}", MAX_COUNT),
                         )
                         .exit();
                     }
 
-                    let mut lamp_ids = [0u8; device::MULTI_UPDATE_LAMP_COUNT];
+                    let mut lamp_ids = [0u8; MAX_COUNT];
                     lamp_ids[0..count].copy_from_slice(&args.lamp_ids);
 
-                    let mut colors = [device::RGBI::zero(); device::MULTI_UPDATE_LAMP_COUNT];
+                    let mut colors = [device::RGBI::zero(); MAX_COUNT];
                     colors[0..count].copy_from_slice(
                         &args
                             .colors
@@ -77,7 +74,7 @@ impl Root {
 
                     d.send_report(Report::LampArrayMultiUpdate(
                         device::LampArrayMultiUpdateReport {
-                            count: args.lamp_ids.len() as u8,
+                            count: count as u8,
                             flags: 0x0001, // TODO(bkeyes): make a constant
                             lamp_ids,
                             colors,
@@ -91,7 +88,7 @@ impl Root {
                         device::LampArrayRangeUpdateReport {
                             flags: 0x0001, // TODO(bkeyes): make a constant
                             lamp_id_start: args.lamp_id_start.unwrap_or(0),
-                            lamp_id_end: args.lamp_id_end.unwrap_or(device::LAMP_COUNT - 1),
+                            lamp_id_end: args.lamp_id_end.unwrap_or(Device::LAMP_COUNT - 1),
                             color: args
                                 .color
                                 .as_ref()
@@ -103,7 +100,7 @@ impl Root {
                 }
             },
 
-            Commands::SetAnimation { animation_type: _ } => todo!(),
+            Commands::SetAnimation { animation: _ } => todo!(),
 
             Commands::Reset(args) => d
                 .send_report(Report::Reset(device::ResetReport {
@@ -137,7 +134,7 @@ pub enum Commands {
     #[command(disable_help_subcommand(true))]
     SetAnimation {
         #[command(subcommand)]
-        animation_type: animation::Types,
+        animation: animation::Animation,
     },
 
     /// Reset the controller hardware
@@ -212,7 +209,7 @@ pub mod animation {
     use csscolorparser::{self, Color};
 
     #[derive(Subcommand)]
-    pub enum Types {
+    pub enum Animation {
         /// Fade a color on and off
         ///
         /// The "breathe" animation cycles between two colors, the first at its full luminance and the
@@ -262,23 +259,19 @@ pub mod animation {
         off_color: Option<Color>,
 
         /// The on fade time (A) in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         on_fade_time: Option<f64>,
 
         /// The on time (B) in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         on_time: Option<f64>,
 
         /// The off fade time (C) in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         off_fade_time: Option<f64>,
 
         /// The off time (D) in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         off_time: Option<f64>,
     }
 
@@ -295,13 +288,11 @@ pub mod animation {
         colors: Vec<Color>,
 
         /// The fade time in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         fade_time: Option<f64>,
 
         /// The hold time in fractional seconds
-        #[arg(long)]
-        #[arg(value_name = "SECONDS")]
+        #[arg(long, value_name = "SECONDS")]
         hold_time: Option<f64>,
     }
 

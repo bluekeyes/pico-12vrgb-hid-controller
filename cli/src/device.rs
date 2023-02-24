@@ -8,17 +8,7 @@ mod backend;
 pub const DEFAULT_VENDOR_ID: u16 = 0xCAFE;
 pub const DEFAULT_PRODUCT_ID: u16 = 0x4100;
 
-pub const LAMP_COUNT: u8 = 4;
-pub const MULTI_UPDATE_LAMP_COUNT: usize = 4;
-
 pub mod hid {
-    pub mod report {
-        pub const LAMP_ARRAY_MULTI_UPDATE: u16 = 0x04;
-        pub const LAMP_ARRAY_RANGE_UPDATE: u16 = 0x05;
-        pub const LAMP_ARRAY_CONTROL: u16 = 0x06;
-        pub const VENDOR_12VRGB_RESET: u16 = 0x30;
-    }
-
     pub mod usage_page {
         pub const LIGHTING: u16 = 0x59;
         pub const VENDOR: u16 = 0xFF00;
@@ -63,6 +53,8 @@ pub struct Device {
 }
 
 impl Device {
+    pub const LAMP_COUNT: u8 = 4;
+
     pub fn open(vendor_id: u16, product_id: u16) -> Result<Device, Error> {
         backend::Device::open(vendor_id, product_id).map(|d| Device { d })
     }
@@ -83,6 +75,18 @@ pub enum Report {
     LampArrayControl(LampArrayControlReport),
 }
 
+impl Report {
+    pub fn id(&self) -> u8 {
+        match self {
+            Self::Reset(_) => 0x30,
+            Self::LampArrayMultiUpdate(_) => 0x04,
+            Self::LampArrayRangeUpdate(_) => 0x05,
+            Self::LampArrayControl(_) => 0x06,
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct ResetReport {
     pub bootsel: bool,
     pub clear_flash: bool,
@@ -103,6 +107,31 @@ impl ResetReport {
         }
         flags
     }
+}
+
+#[derive(Debug)]
+pub struct LampArrayMultiUpdateReport {
+    pub flags: u16,
+    pub count: u8,
+    pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
+    pub colors: [RGBI; LampArrayMultiUpdateReport::MAX_COUNT],
+}
+
+impl LampArrayMultiUpdateReport {
+    pub const MAX_COUNT: usize = 4;
+}
+
+#[derive(Debug)]
+pub struct LampArrayRangeUpdateReport {
+    pub flags: u16,
+    pub lamp_id_start: u8,
+    pub lamp_id_end: u8,
+    pub color: RGBI,
+}
+
+#[derive(Debug)]
+pub struct LampArrayControlReport {
+    pub autonomous: bool,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -135,22 +164,4 @@ impl From<&Color> for RGBI {
         let (r, g, b, _) = value.to_linear_rgba_u8();
         RGBI { r, g, b, i: 1 }
     }
-}
-
-pub struct LampArrayMultiUpdateReport {
-    pub flags: u16,
-    pub count: u8,
-    pub lamp_ids: [u8; MULTI_UPDATE_LAMP_COUNT],
-    pub colors: [RGBI; MULTI_UPDATE_LAMP_COUNT],
-}
-
-pub struct LampArrayRangeUpdateReport {
-    pub flags: u16,
-    pub lamp_id_start: u8,
-    pub lamp_id_end: u8,
-    pub color: RGBI,
-}
-
-pub struct LampArrayControlReport {
-    pub autonomous: bool,
 }

@@ -50,26 +50,27 @@ impl Device {
     }
 
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
+        let report_id = report.id() as u16;
         match report {
-            Report::Reset(reset) => {
+            Report::Reset(report) => {
                 let d = &self.vendor;
-                let r = d.CreateFeatureReportById(hid::report::VENDOR_12VRGB_RESET)?;
+                let r = d.CreateFeatureReportById(report_id)?;
 
-                ReportWriter::new(&r)?.write_byte(reset.flags())?.close()?;
+                ReportWriter::new(&r)?.write_byte(report.flags())?.close()?;
 
                 d.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
 
-            Report::LampArrayMultiUpdate(update) => {
+            Report::LampArrayMultiUpdate(report) => {
                 let d = &self.lamp_array;
-                let r = d.CreateOutputReportById(hid::report::LAMP_ARRAY_MULTI_UPDATE)?;
+                let r = d.CreateOutputReportById(report_id)?;
 
-                let colors: Vec<u8> = update.colors.iter().flat_map(<[u8; 4]>::from).collect();
+                let colors: Vec<u8> = report.colors.iter().flat_map(<[u8; 4]>::from).collect();
                 ReportWriter::new(&r)?
-                    .write_byte(update.count)?
-                    .write_u16(update.flags)?
-                    .write_bytes(&update.lamp_ids)?
+                    .write_byte(report.count)?
+                    .write_u16(report.flags)?
+                    .write_bytes(&report.lamp_ids)?
                     .write_bytes(&colors)?
                     .close()?;
 
@@ -77,27 +78,27 @@ impl Device {
                 Ok(())
             }
 
-            Report::LampArrayRangeUpdate(update) => {
+            Report::LampArrayRangeUpdate(report) => {
                 let d = &self.lamp_array;
-                let r = d.CreateOutputReportById(hid::report::LAMP_ARRAY_RANGE_UPDATE)?;
+                let r = d.CreateOutputReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_u16(update.flags)?
-                    .write_byte(update.lamp_id_start)?
-                    .write_byte(update.lamp_id_end)?
-                    .write_bytes(&<[u8; 4]>::from(&update.color))?
+                    .write_u16(report.flags)?
+                    .write_byte(report.lamp_id_start)?
+                    .write_byte(report.lamp_id_end)?
+                    .write_bytes(&<[u8; 4]>::from(&report.color))?
                     .close()?;
 
                 d.SendOutputReportAsync(&r)?.get()?;
                 Ok(())
             }
 
-            Report::LampArrayControl(ctrl) => {
+            Report::LampArrayControl(report) => {
                 let d = &self.lamp_array;
-                let r = d.CreateFeatureReportById(hid::report::LAMP_ARRAY_CONTROL)?;
+                let r = d.CreateFeatureReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_byte(if ctrl.autonomous { 1 } else { 0 })?
+                    .write_byte(if report.autonomous { 1 } else { 0 })?
                     .close()?;
 
                 d.SendFeatureReportAsync(&r)?.get()?;
