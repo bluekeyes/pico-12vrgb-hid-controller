@@ -260,17 +260,13 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 #endif
 
     uint16_t report_len = 0;
-
-    switch (report_type) {
-    case HID_REPORT_TYPE_INPUT:
+    if (report_type == HID_REPORT_TYPE_INPUT) {
         switch (report_id) {
         case HID_REPORT_ID_TEMPERATURE:
             report_len = get_report_temperature(buffer, reqlen);
             break;
         }
-        break;
-
-    case HID_REPORT_TYPE_FEATURE:
+    } else if (report_type == HID_REPORT_TYPE_FEATURE) {
         switch (report_id) {
         case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
             report_len = get_report_lamp_array_attributes(buffer, reqlen);
@@ -282,7 +278,6 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
             report_len = get_report_temperature_feature(buffer, reqlen);
             break;
         }
-        break;
     }
 
 #ifdef DEBUG_USBHID
@@ -311,8 +306,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
         bufsize--;
     }
 
-    switch (report_type) {
-    case HID_REPORT_TYPE_OUTPUT:
+    if (report_type == HID_REPORT_TYPE_OUTPUT) {
         switch (report_id) {
         case HID_REPORT_ID_LAMP_MULTI_UPDATE:
             set_report_lamp_multi_update(buffer, bufsize);
@@ -324,9 +318,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             set_report_vendor_12vrgb_animation_output(buffer, bufsize);
             break;
         }
-        return;
-
-    case HID_REPORT_TYPE_FEATURE:
+    } else if (report_type == HID_REPORT_TYPE_FEATURE) {
         switch (report_id) {
         case HID_REPORT_ID_LAMP_ATTRIBUTES_REQUEST:
             set_report_lamp_attributes_request(buffer, bufsize);
@@ -344,6 +336,5 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             set_report_vendor_12vrgb_animation_feature(buffer, bufsize);
             break;
         }
-        return;
     }
 }
