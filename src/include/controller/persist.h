@@ -5,6 +5,11 @@
 
 #include "hid/vendor/report.h"
 
+// TODO(bkeyes): consider using the availabe 4 bits of the marker to store type
+// information about the record, e.g. animation report or something else. The
+// would provide a place to store non-animation data, like sleep behavior. On
+// the other hand, as long as 0x0 is the marker for "animation record", this
+// would be easy to add later on if needed
 #define PERSIST_REPORT_MARKER       0x01ed
 #define PERSIST_REPORT_MARKER_BYTES 2
 
