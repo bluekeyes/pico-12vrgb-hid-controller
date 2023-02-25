@@ -207,7 +207,7 @@ static void set_report_vendor_12vrgb_reset(uint8_t const *buffer, uint16_t bufsi
     }
 }
 
-static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t bufsize)
+static void set_report_vendor_12vrgb_animation_output(uint8_t const *buffer, uint16_t bufsize)
 {
     if (bufsize < sizeof(struct Vendor12VRGBAnimationReport)) {
         return;
@@ -221,7 +221,7 @@ static void set_report_vendor_12vrgb_animation(uint8_t const *buffer, uint16_t b
     ctrl_set_animation_from_report(&ctrl, report);
 }
 
-static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, uint16_t bufsize)
+static void set_report_vendor_12vrgb_animation_feature(uint8_t const *buffer, uint16_t bufsize)
 {
     if (bufsize < sizeof(struct Vendor12VRGBAnimationReport)) {
         return;
@@ -321,7 +321,7 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             set_report_lamp_range_update(buffer, bufsize);
             break;
         case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
-            set_report_vendor_12vrgb_animation(buffer, bufsize);
+            set_report_vendor_12vrgb_animation_output(buffer, bufsize);
             break;
         }
         return;
@@ -340,8 +340,8 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
         case HID_REPORT_ID_VENDOR_12VRGB_RESET:
             set_report_vendor_12vrgb_reset(buffer, bufsize);
             break;
-        case HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION:
-            set_report_vendor_12vrgb_default_animation(buffer, bufsize);
+        case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
+            set_report_vendor_12vrgb_animation_feature(buffer, bufsize);
             break;
         }
         return;

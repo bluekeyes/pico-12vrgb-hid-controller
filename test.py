@@ -72,9 +72,7 @@ def update_lamp(r, g, b, lamp_id=0):
 
 
 def set_animation(lamp_id, animation_type, data, set_default=False):
-    report_id = 0x32 if set_default else 0x31
-
-    report = bytearray([report_id, lamp_id, animation_type])
+    report = bytearray([0x31, lamp_id, animation_type])
     report.extend(data)
     report.extend([0x00] * (60 - len(data)))
 

@@ -54,10 +54,8 @@ enum {
     HID_REPORT_ID_TEMPERATURE   = 0x20,
 
     // Vendor Reports
-    HID_REPORT_ID_VENDOR_12VRGB_RESET               = 0x30,
-    HID_REPORT_ID_VENDOR_12VRGB_ANIMATION           = 0x31,
-    HID_REPORT_ID_VENDOR_12VRGB_DEFAULT_ANIMATION   = 0x32, // TODO(bkeyes): make this a feature variant of 0x31?
-
+    HID_REPORT_ID_VENDOR_12VRGB_RESET       = 0x30,
+    HID_REPORT_ID_VENDOR_12VRGB_ANIMATION   = 0x31,
 };
 
 #endif // HID_DESCRIPTOR_H_

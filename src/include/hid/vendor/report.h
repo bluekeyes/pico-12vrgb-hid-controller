@@ -41,9 +41,9 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
     uint8_t flags;
 };
 
-// ------------------------
-// (Default)AnimationReport
-// ------------------------
+// ---------------
+// AnimationReport
+// ---------------
 
 /**
  * The size of the opaque animation report data field. The total report must be
@@ -52,26 +52,31 @@ struct __attribute__ ((packed)) Vendor12VRGBResetReport {
  */
 #define ANIMATION_REPORT_DATA_SIZE 60
 
-#define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, REPORT_TYPE, REPORT_USAGE) \
+#define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION(REPORT_ID) \
     HID_REPORT_ID   (REPORT_ID) \
-    HID_USAGE       (REPORT_USAGE), \
+    HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_REPORT), \
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
+        /* === Feature Report (set default) === */ \
         /* Lamp ID */ \
         HID_USAGE       (HID_USAGE_VENDOR_12VRGB_LAMP_ID), \
-        HID_ITEM_UINT8  (REPORT_TYPE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8  (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* Animation Type */ \
         HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_TYPE), \
-        HID_ITEM_UINT8  (REPORT_TYPE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8  (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* Data */ \
         HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_DATA), \
-        HID_ITEM_UINT8  (REPORT_TYPE, ANIMATION_REPORT_DATA_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8  (FEATURE, ANIMATION_REPORT_DATA_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        /* === Output Report (set current) === */ \
+        /* Lamp ID */ \
+        HID_USAGE       (HID_USAGE_VENDOR_12VRGB_LAMP_ID), \
+        HID_ITEM_UINT8  (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        /* Animation Type */ \
+        HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_TYPE), \
+        HID_ITEM_UINT8  (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        /* Data */ \
+        HID_USAGE       (HID_USAGE_VENDOR_12VRGB_ANIMATION_DATA), \
+        HID_ITEM_UINT8  (OUTPUT, ANIMATION_REPORT_DATA_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
-
-#define HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION(REPORT_ID) \
-    HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, OUTPUT, HID_USAGE_VENDOR_12VRGB_ANIMATION_REPORT)
-
-#define HID_REPORT_DESC_VENDOR_12VRGB_DEFAULT_ANIMATION(REPORT_ID) \
-    HID_REPORT_DESC_VENDOR_12VRGB_ANIMATION_(REPORT_ID, FEATURE, HID_USAGE_VENDOR_12VRGB_DEFAULT_ANIMATION_REPORT)
 
 struct __attribute__ ((packed)) Vendor12VRGBAnimationReport {
     uint8_t lamp_id;
