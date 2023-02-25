@@ -7,10 +7,11 @@
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 
-#include "device/specs.h"
-#include "device/lamp.h"
-#include "hid/vendor/report.h"
 #include "controller/persist.h"
+#include "debug.h"
+#include "device/lamp.h"
+#include "device/specs.h"
+#include "hid/vendor/report.h"
 
 /*
  * Default settings are stored in flash as report structs used in the HID
@@ -205,21 +206,9 @@ static void write_reports(uint8_t *pagebuf, uint32_t offset, struct Vendor12VRGB
     }
 }
 
-#define DUMP_BYTES_PER_LINE 16
-
 void ctrl_persist_dump()
 {
-    puts("\n=== memory dump ===");
-
-    uint32_t count = 0;
-    for (void *ptr = PERSIST_ADDR(0); ptr < PERSIST_ADDR(PERSIST_FLASH_SIZE); ptr++) {
-        if (count % DUMP_BYTES_PER_LINE == 0) {
-            printf("\n%4d: ", count);
-        }
-        printf("%02x ", *((uint8_t *) ptr));
-        count++;
-    }
-    putchar('\n');
+    dump_buffer(PERSIST_ADDR(0), PERSIST_FLASH_SIZE, true);
 }
 
 // ----------

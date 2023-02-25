@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "hardware/watchdog.h"
 #include "pico/bootrom.h"
@@ -9,6 +10,7 @@
 #include "controller/controller.h"
 #include "controller/persist.h"
 #include "controller/sensor.h"
+#include "debug.h"
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/descriptor.h"
@@ -233,38 +235,71 @@ static void set_report_vendor_12vrgb_default_animation(uint8_t const *buffer, ui
     ctrl_persist_save_report(report);
 }
 
+static void log_hid_report(char const *func, uint8_t report_id, hid_report_type_t report_type, uint16_t size)
+{
+    char *report_type_str = "unknown";
+    switch (report_type) {
+    case HID_REPORT_TYPE_INPUT:
+        report_type_str = "input";
+    case HID_REPORT_TYPE_OUTPUT:
+        report_type_str = "output";
+    case HID_REPORT_TYPE_FEATURE:
+        report_type_str = "feature";
+    }
+
+    printf("USBHID %s: report_id=0x%x, report_type=%s, length=%d\n", func, report_id, report_type_str, size);
+}
+
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
 {
+#ifdef DEBUG_USBHID
+    log_hid_report("get_report", report_id, report_type, reqlen);
+#endif
+
+    uint16_t report_len = 0;
+
     switch (report_type) {
     case HID_REPORT_TYPE_INPUT:
         switch (report_id) {
         case HID_REPORT_ID_TEMPERATURE:
-            return get_report_temperature(buffer, reqlen);
+            report_len = get_report_temperature(buffer, reqlen);
+            break;
         }
         break;
 
     case HID_REPORT_TYPE_FEATURE:
         switch (report_id) {
         case HID_REPORT_ID_LAMP_ARRAY_ATTRIBUTES:
-            return get_report_lamp_array_attributes(buffer, reqlen);
+            report_len = get_report_lamp_array_attributes(buffer, reqlen);
+            break;
         case HID_REPORT_ID_LAMP_ATTRIBUTES_RESPONSE:
-            return get_report_lamp_attributes_response(buffer, reqlen);
+            report_len = get_report_lamp_attributes_response(buffer, reqlen);
+            break;
         case HID_REPORT_ID_TEMPERATURE:
-            return get_report_temperature_feature(buffer, reqlen);
+            report_len = get_report_temperature_feature(buffer, reqlen);
+            break;
         }
         break;
     }
 
-    return 0;
+#ifdef DEBUG_USBHID
+    dump_buffer((void *) buffer, report_len, true);
+#endif
+    return report_len;
 }
 
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
 {
+#ifdef DEBUG_USBHID
+    log_hid_report("set_report", report_id, report_type, bufsize);
+    dump_buffer((void *) buffer, bufsize, true);
+#endif
+
     // Received data on OUT endpoint, convert to standard format for processing
     if (report_id == 0 && report_type == 0) {
         if (bufsize == 0) {
