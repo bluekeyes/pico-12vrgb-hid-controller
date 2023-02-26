@@ -1,5 +1,5 @@
 # cmake build
-/build/
+/fw/build/
 
 # rustc generated files
 /cli/target/
