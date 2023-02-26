@@ -11,7 +11,7 @@ impl Device {
         unimplemented!()
     }
 
-    pub fn read_temperature(&self) -> Result<i16, Error> {
+    pub fn read_temperature(&self) -> Result<f64, Error> {
         unimplemented!()
     }
 }

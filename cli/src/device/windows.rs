@@ -1,16 +1,19 @@
 use crate::device::{hid, Error, Report, SetAnimationMode};
+use std::sync;
 use windows::core::HSTRING;
 use windows::Devices::Enumeration::DeviceInformation;
 use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport, HidOutputReport};
 use windows::Storage::FileAccessMode;
 use windows::Storage::Streams::{ByteOrder, DataWriter, IBuffer};
-use windows::Win32::Devices::Sensors::{self, ISensorManager};
+use windows::Win32::Devices::Sensors::{self, ISensor, ISensorManager};
 use windows::Win32::System::Com;
+use windows::Win32::System::Com::StructuredStorage::PROPVARIANT;
 use windows::Win32::UI::Shell::PropertiesSystem::PROPERTYKEY;
 
 pub struct Device {
     vendor: HidDevice,
     lamp_array: HidDevice,
+    temp_sensor: ISensor,
 }
 
 impl From<windows::core::Error> for Error {
@@ -21,10 +24,7 @@ impl From<windows::core::Error> for Error {
 
 impl Device {
     pub fn open(vendor_id: u16, product_id: u16) -> Result<Device, Error> {
-        unsafe {
-            // Initialize COM thread for later use
-            Com::CoInitializeEx(None, Com::COINIT_MULTITHREADED)?;
-        }
+        init_com_once()?;
 
         let vendor_filter = HidDevice::GetDeviceSelectorVidPid(
             hid::usage_page::VENDOR,
@@ -40,13 +40,19 @@ impl Device {
             product_id,
         )?;
 
-        let vendor_id = get_device_from_filter(&vendor_filter)?.Id()?;
-        let vendor = HidDevice::FromIdAsync(&vendor_id, FileAccessMode::ReadWrite)?.get()?;
+        let device_id = find_first_device(&vendor_filter)?.Id()?;
+        let vendor = HidDevice::FromIdAsync(&device_id, FileAccessMode::ReadWrite)?.get()?;
 
-        let lamp_arry_id = get_device_from_filter(&lamp_array_filter)?.Id()?;
-        let lamp_array = HidDevice::FromIdAsync(&lamp_arry_id, FileAccessMode::ReadWrite)?.get()?;
+        let device_id = find_first_device(&lamp_array_filter)?.Id()?;
+        let lamp_array = HidDevice::FromIdAsync(&device_id, FileAccessMode::ReadWrite)?.get()?;
 
-        Ok(Device { vendor, lamp_array })
+        let temp_sensor = find_temp_sensor(vendor_id, product_id)?;
+
+        Ok(Device {
+            vendor,
+            lamp_array,
+            temp_sensor,
+        })
     }
 
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
@@ -132,38 +138,65 @@ impl Device {
         }
     }
 
-    pub fn read_temperature(&self) -> Result<i16, Error> {
+    pub fn read_temperature(&self) -> Result<f64, Error> {
         const TEMPERATURE_PID: u32 = 2;
 
         unsafe {
-            let sensor_manager: ISensorManager =
-                Com::CoCreateInstance(&Sensors::SensorManager, None, Com::CLSCTX_INPROC_SERVER)?;
-
-            let sensors = sensor_manager.GetSensorsByType(&Sensors::GUID_SensorType_Temperature)?;
-            let sensor = if sensors.GetCount()? > 0 {
-                // TODO(bkeyes): figure out how to get our sensor, not just the first one...
-                sensors.GetAt(0)?
-            } else {
-                return Err(Error::NotFound);
-            };
-
-            let value = sensor.GetData()?.GetSensorValue(&PROPERTYKEY {
+            let value = self.temp_sensor.GetData()?.GetSensorValue(&PROPERTYKEY {
                 fmtid: Sensors::SENSOR_DATA_TYPE_ENVIRONMENTAL_GUID,
                 pid: TEMPERATURE_PID,
             })?;
-
-            Ok((100.0 * value.Anonymous.Anonymous.Anonymous.fltVal) as i16)
+            Ok(value.Anonymous.Anonymous.Anonymous.fltVal as f64)
         }
     }
 }
 
-fn get_device_from_filter(aqs: &HSTRING) -> Result<DeviceInformation, Error> {
-    let devices = DeviceInformation::FindAllAsyncAqsFilter(aqs)?.get()?;
+fn find_first_device(aqs_filter: &HSTRING) -> Result<DeviceInformation, Error> {
+    let devices = DeviceInformation::FindAllAsyncAqsFilter(aqs_filter)?.get()?;
     if devices.Size()? < 1 {
         Err(Error::NotFound)
     } else {
         Ok(devices.GetAt(0)?)
     }
+}
+
+fn find_temp_sensor(vendor_id: u16, product_id: u16) -> Result<ISensor, Error> {
+    let path_prefix = format!("\\\\?\\HID#VID_{vendor_id:04X}&PID_{product_id:04X}&");
+
+    unsafe {
+        let sensor_manager: ISensorManager =
+            Com::CoCreateInstance(&Sensors::SensorManager, None, Com::CLSCTX_INPROC_SERVER)?;
+
+        let sensors = sensor_manager.GetSensorsByType(&Sensors::GUID_SensorType_Temperature)?;
+        for i in 0..sensors.GetCount()? {
+            let sensor = sensors.GetAt(i)?;
+            let path = sensor.GetProperty(&Sensors::SENSOR_PROPERTY_DEVICE_PATH)?;
+            if get_pwsz_string(path)?.starts_with(&path_prefix) {
+                return Ok(sensor);
+            }
+        }
+    }
+
+    Err(Error::NotFound)
+}
+
+unsafe fn get_pwsz_string(pv: PROPVARIANT) -> Result<String, Error> {
+    pv.Anonymous
+        .Anonymous
+        .Anonymous
+        .pwszVal
+        .to_string()
+        .map_err(|err| Error::Backend(Box::new(err)))
+}
+
+static COM_INIT: sync::Once = sync::Once::new();
+
+fn init_com_once() -> Result<(), Error> {
+    let mut r: Result<(), Error> = Ok(());
+    COM_INIT.call_once(|| unsafe {
+        r = Com::CoInitializeEx(None, Com::COINIT_MULTITHREADED).map_err(From::from)
+    });
+    r
 }
 
 trait HidReport {

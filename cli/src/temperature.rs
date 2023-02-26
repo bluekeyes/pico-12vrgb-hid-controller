@@ -25,8 +25,7 @@ impl Degrees {
         }
     }
 
-    pub fn convert_raw(&self, raw: i16) -> f64 {
-        let c = (raw as f64) / 100.0;
+    pub fn from_celsius(&self, c: f64) -> f64 {
         match self {
             Self::Celsius => c,
             Self::Farenheight => 9.0 * c / 5.0 + 32.0,

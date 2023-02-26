@@ -63,7 +63,7 @@ impl Device {
         self.d.send_report(report)
     }
 
-    pub fn read_temperature(&self) -> Result<i16, Error> {
+    pub fn read_temperature(&self) -> Result<f64, Error> {
         self.d.read_temperature()
     }
 }

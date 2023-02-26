@@ -187,7 +187,7 @@ impl Root {
                 .map_err(From::from),
 
             Commands::GetTemperature(args) => loop {
-                println!("{:.2}", args.units.convert_raw(d.read_temperature()?));
+                println!("{:.2}", args.units.from_celsius(d.read_temperature()?));
                 match args.interval {
                     Some(interval) => thread::sleep(Duration::from_secs(interval as u64)),
                     None => return Ok(()),
