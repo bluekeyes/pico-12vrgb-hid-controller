@@ -72,7 +72,7 @@ pub enum Report {
     LampArrayMultiUpdate(LampArrayMultiUpdateReport),
     LampArrayRangeUpdate(LampArrayRangeUpdateReport),
     LampArrayControl(LampArrayControlReport),
-    Reset(ResetReport),
+    Reset(ResetFlags),
     SetAnimation(SetAnimationMode, SetAnimationReport),
 }
 
@@ -90,7 +90,7 @@ impl Report {
 
 #[derive(Debug)]
 pub struct LampArrayMultiUpdateReport {
-    pub flags: u16,
+    pub flags: LampArrayUpdateFlags,
     pub count: u8,
     pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
     pub colors: [LampValue; LampArrayMultiUpdateReport::MAX_COUNT],
@@ -102,10 +102,25 @@ impl LampArrayMultiUpdateReport {
 
 #[derive(Debug)]
 pub struct LampArrayRangeUpdateReport {
-    pub flags: u16,
+    pub flags: LampArrayUpdateFlags,
     pub lamp_id_start: u8,
     pub lamp_id_end: u8,
     pub color: LampValue,
+}
+
+#[derive(Debug)]
+pub struct LampArrayUpdateFlags {
+    pub update_complete: bool,
+}
+
+impl From<&LampArrayUpdateFlags> for u16 {
+    fn from(value: &LampArrayUpdateFlags) -> Self {
+        let mut flags: u16 = 0;
+        if value.update_complete {
+            flags |= 1 << 0;
+        }
+        flags
+    }
 }
 
 #[derive(Debug)]
@@ -114,23 +129,19 @@ pub struct LampArrayControlReport {
 }
 
 #[derive(Debug)]
-pub struct ResetReport {
+pub struct ResetFlags {
     pub bootsel: bool,
     pub clear_flash: bool,
 }
 
-impl ResetReport {
-    /// Returns the value of the VENDOR_12VRGB_RESET_FLAGS report item
-    pub fn flags(&self) -> u8 {
-        const BOOTSEL: u8 = 1 << 0;
-        const CLEAR_FLASH: u8 = 1 << 1;
-
+impl From<&ResetFlags> for u8 {
+    fn from(value: &ResetFlags) -> Self {
         let mut flags: u8 = 0;
-        if self.bootsel {
-            flags |= BOOTSEL;
+        if value.bootsel {
+            flags |= 1 << 0;
         }
-        if self.clear_flash {
-            flags |= CLEAR_FLASH;
+        if value.clear_flash {
+            flags |= 1 << 1;
         }
         flags
     }

@@ -75,8 +75,10 @@ impl Root {
 
                     d.send_report(Report::LampArrayMultiUpdate(
                         device::LampArrayMultiUpdateReport {
+                            flags: device::LampArrayUpdateFlags {
+                                update_complete: true,
+                            },
                             count: count as u8,
-                            flags: 0x0001, // TODO(bkeyes): make a constant
                             lamp_ids,
                             colors,
                         },
@@ -84,10 +86,12 @@ impl Root {
                     .map_err(From::from)
                 }
 
-                lamparray::Commands::UpdateRange(args) => {
-                    d.send_report(Report::LampArrayRangeUpdate(
+                lamparray::Commands::UpdateRange(args) => d
+                    .send_report(Report::LampArrayRangeUpdate(
                         device::LampArrayRangeUpdateReport {
-                            flags: 0x0001, // TODO(bkeyes): make a constant
+                            flags: device::LampArrayUpdateFlags {
+                                update_complete: true,
+                            },
                             lamp_id_start: args.lamp_id_start.unwrap_or(0),
                             lamp_id_end: args.lamp_id_end.unwrap_or(Device::LAMP_COUNT - 1),
                             color: args
@@ -97,8 +101,7 @@ impl Root {
                                 .unwrap_or(device::LampValue::zero()),
                         },
                     ))
-                    .map_err(From::from)
-                }
+                    .map_err(From::from),
             },
 
             Commands::SetAnimation { animation } => match animation {
@@ -180,7 +183,7 @@ impl Root {
             },
 
             Commands::Reset(args) => d
-                .send_report(Report::Reset(device::ResetReport {
+                .send_report(Report::Reset(device::ResetFlags {
                     bootsel: args.bootsel,
                     clear_flash: args.clear_flash,
                 }))
