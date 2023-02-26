@@ -5,7 +5,7 @@ use pico_12vrgb_ctrl::cli::Root;
 
 fn main() {
     if let Err(err) = Root::parse().run() {
-        eprintln!("Error: {}", err.to_string());
+        eprintln!("Error: {err}");
         process::exit(1);
     }
 }

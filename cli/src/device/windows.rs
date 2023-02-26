@@ -1,4 +1,4 @@
-use crate::device::{hid, Error, Report};
+use crate::device::{hid, Error, Report, SetAnimationMode};
 use windows::core::HSTRING;
 use windows::Devices::Enumeration::DeviceInformation;
 use windows::Devices::HumanInterfaceDevice::{HidDevice, HidFeatureReport, HidOutputReport};
@@ -52,16 +52,6 @@ impl Device {
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
         let report_id = report.id() as u16;
         match report {
-            Report::Reset(report) => {
-                let d = &self.vendor;
-                let r = d.CreateFeatureReportById(report_id)?;
-
-                ReportWriter::new(&r)?.write_byte(report.flags())?.close()?;
-
-                d.SendFeatureReportAsync(&r)?.get()?;
-                Ok(())
-            }
-
             Report::LampArrayMultiUpdate(report) => {
                 let d = &self.lamp_array;
                 let r = d.CreateOutputReportById(report_id)?;
@@ -102,6 +92,41 @@ impl Device {
                     .close()?;
 
                 d.SendFeatureReportAsync(&r)?.get()?;
+                Ok(())
+            }
+
+            Report::Reset(report) => {
+                let d = &self.vendor;
+                let r = d.CreateFeatureReportById(report_id)?;
+
+                ReportWriter::new(&r)?.write_byte(report.flags())?.close()?;
+
+                d.SendFeatureReportAsync(&r)?.get()?;
+                Ok(())
+            }
+
+            Report::SetAnimation(mode, report) => {
+                let write_report = |r: &dyn HidReport| -> Result<(), Error> {
+                    ReportWriter::new(r)?
+                        .write_byte(report.lamp_id)?
+                        .write_byte(report.animation.type_byte())?
+                        .write_bytes(&report.animation.data())?
+                        .close()
+                };
+
+                let d = &self.vendor;
+                match mode {
+                    SetAnimationMode::Default => {
+                        let r = d.CreateFeatureReportById(report_id)?;
+                        write_report(&r)?;
+                        d.SendFeatureReportAsync(&r)?.get()?;
+                    }
+                    SetAnimationMode::Current => {
+                        let r = d.CreateOutputReportById(report_id)?;
+                        write_report(&r)?;
+                        d.SendOutputReportAsync(&r)?.get()?;
+                    }
+                };
                 Ok(())
             }
         }

@@ -1,5 +1,5 @@
 use csscolorparser::Color;
-use std::{error, fmt};
+use std::{error, fmt, io::Write};
 
 #[cfg_attr(unix, path = "device/unix.rs")]
 #[cfg_attr(windows, path = "device/windows.rs")]
@@ -34,7 +34,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             Self::NotFound => write!(f, "device not found"),
-            Self::Backend(err) => write!(f, "system error: {}", err.to_string()),
+            Self::Backend(err) => write!(f, "system error: {err}"),
         }
     }
 }
@@ -69,21 +69,48 @@ impl Device {
 }
 
 pub enum Report {
-    Reset(ResetReport),
     LampArrayMultiUpdate(LampArrayMultiUpdateReport),
     LampArrayRangeUpdate(LampArrayRangeUpdateReport),
     LampArrayControl(LampArrayControlReport),
+    Reset(ResetReport),
+    SetAnimation(SetAnimationMode, SetAnimationReport),
 }
 
 impl Report {
     pub fn id(&self) -> u8 {
         match self {
-            Self::Reset(_) => 0x30,
             Self::LampArrayMultiUpdate(_) => 0x04,
             Self::LampArrayRangeUpdate(_) => 0x05,
             Self::LampArrayControl(_) => 0x06,
+            Self::Reset(_) => 0x30,
+            Self::SetAnimation(_, _) => 0x31,
         }
     }
+}
+
+#[derive(Debug)]
+pub struct LampArrayMultiUpdateReport {
+    pub flags: u16,
+    pub count: u8,
+    pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
+    pub colors: [LampValue; LampArrayMultiUpdateReport::MAX_COUNT],
+}
+
+impl LampArrayMultiUpdateReport {
+    pub const MAX_COUNT: usize = 4;
+}
+
+#[derive(Debug)]
+pub struct LampArrayRangeUpdateReport {
+    pub flags: u16,
+    pub lamp_id_start: u8,
+    pub lamp_id_end: u8,
+    pub color: LampValue,
+}
+
+#[derive(Debug)]
+pub struct LampArrayControlReport {
+    pub autonomous: bool,
 }
 
 #[derive(Debug)]
@@ -110,41 +137,102 @@ impl ResetReport {
 }
 
 #[derive(Debug)]
-pub struct LampArrayMultiUpdateReport {
-    pub flags: u16,
-    pub count: u8,
-    pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
-    pub colors: [RGBI; LampArrayMultiUpdateReport::MAX_COUNT],
-}
-
-impl LampArrayMultiUpdateReport {
-    pub const MAX_COUNT: usize = 4;
+pub enum SetAnimationMode {
+    Default,
+    Current,
 }
 
 #[derive(Debug)]
-pub struct LampArrayRangeUpdateReport {
-    pub flags: u16,
-    pub lamp_id_start: u8,
-    pub lamp_id_end: u8,
-    pub color: RGBI,
+pub enum Animation {
+    None,
+    Breathe(BreatheAnimationData),
+    Fade(FadeAnimationData),
+}
+
+impl Animation {
+    pub const DATA_SIZE: usize = 60;
+
+    pub fn type_byte(&self) -> u8 {
+        match self {
+            Self::None => 0x00,
+            Self::Breathe(_) => 0x01,
+            Self::Fade(_) => 0x02,
+        }
+    }
+
+    pub fn data(&self) -> Vec<u8> {
+        match self {
+            Self::None => Self::write_data(|_| Ok(())),
+
+            Self::Breathe(ref data) => Self::write_data(|b| {
+                b.write_all(&<[u8; 3]>::from(&data.on_color))?;
+                b.write_all(&<[u8; 3]>::from(&data.off_color))?;
+                b.write_all(&data.on_fade_time_ms.to_le_bytes())?;
+                b.write_all(&data.on_time_ms.to_le_bytes())?;
+                b.write_all(&data.off_fade_time_ms.to_le_bytes())?;
+                b.write_all(&data.off_time_ms.to_le_bytes())
+            }),
+
+            Self::Fade(ref data) => Self::write_data(|b| {
+                let colors: Vec<u8> = data.colors.iter().flat_map(<[u8; 3]>::from).collect();
+                b.write_all(&data.color_count.to_le_bytes())?;
+                b.write_all(&colors)?;
+                b.write_all(&data.fade_time_ms.to_le_bytes())?;
+                b.write_all(&data.hold_time_ms.to_le_bytes())
+            }),
+        }
+    }
+
+    fn write_data<F>(f: F) -> Vec<u8>
+    where
+        F: Fn(&mut Vec<u8>) -> std::io::Result<()>,
+    {
+        let mut b: Vec<u8> = Vec::with_capacity(Self::DATA_SIZE);
+        f(&mut b)
+            .map(|_| b)
+            .expect("impl std::io::Write for std::vec::Vec should not return Err")
+    }
 }
 
 #[derive(Debug)]
-pub struct LampArrayControlReport {
-    pub autonomous: bool,
+pub struct BreatheAnimationData {
+    pub on_color: RGB,
+    pub off_color: RGB,
+    pub on_fade_time_ms: u16,
+    pub on_time_ms: u16,
+    pub off_fade_time_ms: u16,
+    pub off_time_ms: u16,
+}
+
+#[derive(Debug)]
+pub struct FadeAnimationData {
+    pub color_count: u8,
+    pub colors: [RGB; FadeAnimationData::MAX_COLORS],
+    pub fade_time_ms: u16,
+    pub hold_time_ms: u16,
+}
+
+impl FadeAnimationData {
+    pub const MAX_COLORS: usize = 8;
+}
+
+#[derive(Debug)]
+pub struct SetAnimationReport {
+    pub lamp_id: u8,
+    pub animation: Animation,
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct RGBI {
+pub struct LampValue {
     pub r: u8,
     pub g: u8,
     pub b: u8,
     pub i: u8,
 }
 
-impl RGBI {
+impl LampValue {
     pub fn zero() -> Self {
-        RGBI {
+        LampValue {
             r: 0,
             g: 0,
             b: 0,
@@ -153,15 +241,41 @@ impl RGBI {
     }
 }
 
-impl From<&RGBI> for [u8; 4] {
-    fn from(rgbi: &RGBI) -> Self {
+impl From<&LampValue> for [u8; 4] {
+    fn from(rgbi: &LampValue) -> Self {
         [rgbi.r, rgbi.g, rgbi.b, rgbi.i]
     }
 }
 
-impl From<&Color> for RGBI {
+impl From<&Color> for LampValue {
     fn from(value: &Color) -> Self {
         let (r, g, b, _) = value.to_linear_rgba_u8();
-        RGBI { r, g, b, i: 1 }
+        LampValue { r, g, b, i: 1 }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct RGB {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl RGB {
+    pub fn zero() -> Self {
+        RGB { r: 0, g: 0, b: 0 }
+    }
+}
+
+impl From<&RGB> for [u8; 3] {
+    fn from(rgb: &RGB) -> Self {
+        [rgb.r, rgb.g, rgb.b]
+    }
+}
+
+impl From<&Color> for RGB {
+    fn from(value: &Color) -> Self {
+        let (r, g, b, _) = value.to_linear_rgba_u8();
+        RGB { r, g, b }
     }
 }

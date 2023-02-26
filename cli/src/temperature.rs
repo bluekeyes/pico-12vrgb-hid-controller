@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Degrees {
     Celsius,
     Farenheight,
