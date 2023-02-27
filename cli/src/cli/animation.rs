@@ -7,6 +7,9 @@ use crate::device::{self, Device, Report};
 
 #[derive(Subcommand)]
 pub enum Animation {
+    /// Turn off animation on a channel
+    None(SharedArgs),
+
     /// Fade a color on and off
     ///
     /// The "breathe" animation cycles between two colors, the first at its full luminance and the
@@ -39,6 +42,16 @@ pub enum Animation {
 impl Animation {
     pub fn run(&self, dev: &Device) -> Result<(), Box<dyn std::error::Error>> {
         match self {
+            Self::None(args) => dev
+                .send_report(Report::SetAnimation(
+                    args.mode(),
+                    device::SetAnimationReport {
+                        lamp_id: args.lamp_id,
+                        animation: device::Animation::None,
+                    },
+                ))
+                .map_err(From::from),
+
             Self::Breathe(args) => {
                 const DEFAULT_ON_TIME: Time = Time(500);
                 const DEFAULT_FADE_TIME: Time = Time(1000);
