@@ -65,18 +65,3 @@ void lamp_set_value(uint8_t lamp_id, struct LampValue value)
         pwm_set_gpio_level(bp, 0);
     }
 }
-
-void lamp_set_off(uint8_t lamp_id)
-{
-    if (lamp_id > MAX_LAMP_ID) {
-        return;
-    }
-
-    uint8_t rp = lamp_gpios[lamp_id][0];
-    uint8_t gp = lamp_gpios[lamp_id][1];
-    uint8_t bp = lamp_gpios[lamp_id][2];
-
-    pwm_set_gpio_level(rp, 0);
-    pwm_set_gpio_level(gp, 0);
-    pwm_set_gpio_level(bp, 0);
-}

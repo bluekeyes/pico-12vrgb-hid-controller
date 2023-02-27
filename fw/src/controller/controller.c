@@ -85,7 +85,7 @@ void ctrl_suspend(controller_t *ctrl)
         state->dirty = true;
         state->next = state->current;
 
-        lamp_set_off(id);
+        lamp_set_value(id, lamp_value_off());
     }
 
     ctrl->is_suspended = true;
@@ -113,13 +113,12 @@ static inline struct AnimationState get_initial_animation_state(void *data)
  */
 static void ctrl_animation_frame(controller_t *ctrl, uint8_t lamp_id)
 {
-    struct AnimationState *state = &ctrl->animation[lamp_id];
-
     FrameCallback frame_cb = ctrl->frame_cb[lamp_id];
     if (frame_cb == NULL) {
         return;
     }
 
+    struct AnimationState *state = &ctrl->animation[lamp_id];
     uint8_t next_stage = frame_cb(ctrl, lamp_id, state);
 
     state->frame++;
@@ -209,6 +208,8 @@ void ctrl_set_animation(controller_t *ctrl, uint8_t lamp_id, FrameCallback frame
 
 static void set_animation_none(controller_t *ctrl, struct Vendor12VRGBAnimationReport *report)
 {
+    // Setting the "none" animation will also turn off the lamp
+    ctrl_update_lamp(ctrl, report->lamp_id, lamp_value_off(), true);
     ctrl_set_animation(ctrl, report->lamp_id, NULL, NULL);
 }
 

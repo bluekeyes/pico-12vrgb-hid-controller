@@ -23,13 +23,26 @@ extern const uint8_t  lamp_gpios[LAMP_COUNT][3];
 
 void lamp_init();
 void lamp_set_value(uint8_t lamp_id, struct LampValue value);
-void lamp_set_off(uint8_t lamp_id);
 
 static inline struct LampValue lamp_value_from_rgb(struct RGBi rgb)
 {
     struct LampValue value = {
         .rgb = rgb,
         .i = 0x01,
+    };
+    return value;
+}
+
+static inline struct LampValue lamp_value_off()
+{
+    struct RGBi rgb = {
+        .r = 0,
+        .g = 0,
+        .b = 0,
+    };
+    struct LampValue value = {
+        .rgb = rgb,
+        .i = 0,
     };
     return value;
 }
