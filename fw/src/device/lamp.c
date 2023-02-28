@@ -16,12 +16,6 @@ const uint8_t lamp_gpios[LAMP_COUNT][3] = {
     CFG_RGB_LAMP_GPIO_MAPPING
 };
 
-static inline uint16_t get_pwm_level(uint8_t value)
-{
-    // squaring a value is a simple approximation for gamma corection
-    return ((uint16_t) value) * ((uint16_t) value);
-}
-
 void lamp_init()
 {
     pwm_config config = pwm_get_default_config();
@@ -56,9 +50,9 @@ void lamp_set_value(uint8_t lamp_id, struct LampValue value)
     uint8_t bp = lamp_gpios[lamp_id][2];
 
     if (value.i > 0) {
-        pwm_set_gpio_level(rp, get_pwm_level(value.rgb.r));
-        pwm_set_gpio_level(gp, get_pwm_level(value.rgb.g));
-        pwm_set_gpio_level(bp, get_pwm_level(value.rgb.b));
+        pwm_set_gpio_level(rp, value.r);
+        pwm_set_gpio_level(gp, value.g);
+        pwm_set_gpio_level(bp, value.b);
     } else {
         pwm_set_gpio_level(rp, 0);
         pwm_set_gpio_level(gp, 0);

@@ -47,8 +47,8 @@ struct __attribute__ ((packed)) AnimationBreatheReportData {
      * color, if set, is modified to have 0 lightness. If the "off" color is
      * unset (all colors 0), it is set to the "on" color.
      */
-    struct RGBi on_color;
-    struct RGBi off_color;
+    struct RGBu8 on_color;
+    struct RGBu8 off_color;
 
     /**
      * The timing of the animation in milliseconds. This means that each phase
@@ -88,7 +88,7 @@ struct __attribute__ ((packed)) AnimationFadeReportData {
      * should be set.
      */
     uint8_t color_count;
-    struct RGBi colors[MAX_FADE_TARGETS];
+    struct RGBu8 colors[MAX_FADE_TARGETS];
 
     /**
      * The timing of the animation in milliseconds. This means that each phase

@@ -9,12 +9,13 @@
 #define MAX_LAMP_ID (LAMP_COUNT - 1)
 
 /**
- * LampValue is a value that can be set on a lamp. For convenience, it maps
- * directly to the format used in HID reports to send lamp values.
+ * LampValue is a value that can be set on a lamp.
  */
-struct __attribute__ ((packed)) LampValue {
-    struct RGBi rgb;
-    uint8_t i;
+struct LampValue {
+    uint16_t r;
+    uint16_t g;
+    uint16_t b;
+    uint8_t  i;
 };
 
 extern const int32_t  lamp_positions[LAMP_COUNT][3];
@@ -24,24 +25,35 @@ extern const uint8_t  lamp_gpios[LAMP_COUNT][3];
 void lamp_init();
 void lamp_set_value(uint8_t lamp_id, struct LampValue value);
 
-static inline struct LampValue lamp_value_from_rgb(struct RGBi rgb)
+static inline struct LampValue lamp_value_from_rgbu16(struct RGBu16 rgb)
 {
     struct LampValue value = {
-        .rgb = rgb,
+        .r = rgb.r,
+        .g = rgb.g,
+        .b = rgb.b,
         .i = 0x01,
+    };
+    return value;
+}
+
+static inline struct LampValue lamp_value_from_u8_tuple(uint8_t const *rgbi)
+{
+    // squaring values is a simple approximation for gamma correction
+    struct LampValue value = {
+        .r = ((uint16_t) rgbi[0]) * ((uint16_t) rgbi[0]),
+        .g = ((uint16_t) rgbi[1]) * ((uint16_t) rgbi[1]),
+        .b = ((uint16_t) rgbi[2]) * ((uint16_t) rgbi[2]),
+        .i = rgbi[3],
     };
     return value;
 }
 
 static inline struct LampValue lamp_value_off()
 {
-    struct RGBi rgb = {
+    struct LampValue value = {
         .r = 0,
         .g = 0,
         .b = 0,
-    };
-    struct LampValue value = {
-        .rgb = rgb,
         .i = 0,
     };
     return value;

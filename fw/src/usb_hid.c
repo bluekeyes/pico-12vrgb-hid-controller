@@ -124,7 +124,7 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
     }
 
     for (uint8_t i = 0; i < report->lamp_count; i++) {
-        ctrl_update_lamp(&ctrl, report->lamp_ids[i], *((struct LampValue *) report->rgbi_tuples[i]), false);
+        ctrl_update_lamp(&ctrl, report->lamp_ids[i], lamp_value_from_u8_tuple(report->rgbi_tuples[i]), false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
@@ -156,7 +156,7 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
         return;
     }
 
-    struct LampValue value = *((struct LampValue *) report->rgbi_tuple);
+    struct LampValue value = lamp_value_from_u8_tuple(report->rgbi_tuple);
     for (uint8_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
         ctrl_update_lamp(&ctrl, id, value, false);
     }

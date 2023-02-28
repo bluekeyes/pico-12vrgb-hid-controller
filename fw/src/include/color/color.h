@@ -9,10 +9,19 @@
  * The struct is packed so that it can be directly mapped to array
  * representations of RGB data.
  */
-struct __attribute__ ((packed)) RGBi {
+struct __attribute__ ((packed)) RGBu8 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
+};
+
+/**
+ * @brief A linear RGB color with integer channel values in [0, 65535].
+ */
+struct RGBu16 {
+    uint16_t r;
+    uint16_t g;
+    uint16_t b;
 };
 
 /**
@@ -24,8 +33,9 @@ struct RGBf {
     float b;
 };
 
-struct RGBi rgbf_to_i(struct RGBf rgb);
-struct RGBf rgbi_to_f(struct RGBi rgb);
+struct RGBu8 rgbftou8(struct RGBf rgb);
+struct RGBu16 rgbftou16(struct RGBf rgb);
+struct RGBf rgbu8tof(struct RGBu8 rgb);
 
 /**
  * @brief An Oklab (or L*a*b*) color with float channel values.
