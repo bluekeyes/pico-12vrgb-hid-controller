@@ -57,5 +57,5 @@ target_link_libraries(pico_12vrgb_controller
 pico_add_extra_outputs(pico_12vrgb_controller)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG_USBHID=1)
+    add_compile_definitions(DEBUG_USBHID=1 DEBUG_ANIMATE=1)
 endif()

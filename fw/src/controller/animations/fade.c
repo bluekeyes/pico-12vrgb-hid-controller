@@ -119,6 +119,26 @@ static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_
     }
 }
 
+void log_fade_stage(uint8_t stage, struct Labf current_color, struct Labf target_color)
+{
+    struct RGBi rgb;
+    printf("animate/fade: start stage %d\n", stage);
+
+    rgb = rgbf_to_i(oklab_to_rgb(current_color));
+    printf(
+        "    current color = oklab(% .8f, % .8f, % .8f) | rgb(%3d, %3d, %3d)\n",
+        current_color.L, current_color.a, current_color.b,
+        rgb.r, rgb.g, rgb.b
+    );
+
+    rgb = rgbf_to_i(oklab_to_rgb(target_color));
+    printf(
+        "     target color = oklab(% .8f, % .8f, % .8f) | rgb(%3d, %3d, %3d)\n",
+        target_color.L, target_color.a, target_color.b,
+        rgb.r, rgb.g, rgb.b
+    );
+}
+
 uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *state)
 {
     struct AnimationFade *fade = (struct AnimationFade *) state->data;
@@ -131,6 +151,9 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
 
     if (is_hold) {
         if (state->stage_frame == 0) {
+#ifdef DEBUG_ANIMATE
+            log_fade_stage(state->stage, fade->current_color, fade->targets[target]);
+#endif
             // first frame of a hold, make sure we show the exact color
             fade->current_color = fade->targets[target];
             is_dirty = true;
@@ -138,6 +161,9 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
         stage_frames = fade->hold_frames[target];
     } else {
         if (state->stage_frame == 0) {
+#ifdef DEBUG_ANIMATE
+            log_fade_stage(state->stage, fade->current_color, fade->targets[target]);
+#endif
             // starting a new fade stage, initialize fade diffs
             anim_fade_set_diffs(fade, target, target == 0 ? fade->target_count - 1 : (target - 1));
         }
