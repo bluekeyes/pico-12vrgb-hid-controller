@@ -96,12 +96,12 @@ impl Animation {
                     .exit();
                 }
 
-                let mut colors = [device::RGB::zero(); MAX_COLORS];
+                let mut colors = [device::LinearRGB::zero(); MAX_COLORS];
                 colors[0..color_count].copy_from_slice(
                     &args
                         .colors
                         .iter()
-                        .map(<device::RGB>::from)
+                        .map(<device::LinearRGB>::from)
                         .collect::<Vec<_>>(),
                 );
 

@@ -54,12 +54,12 @@ impl Command {
                 let mut lamp_ids = [0u8; MAX_COUNT];
                 lamp_ids[0..count].copy_from_slice(&args.lamp_ids);
 
-                let mut colors = [device::LampValue::zero(); MAX_COUNT];
+                let mut colors = [device::HIDLampValue::zero(); MAX_COUNT];
                 colors[0..count].copy_from_slice(
                     &args
                         .colors
                         .iter()
-                        .map(<device::LampValue>::from)
+                        .map(<device::HIDLampValue>::from)
                         .collect::<Vec<_>>(),
                 );
 
@@ -88,7 +88,7 @@ impl Command {
                             .color
                             .as_ref()
                             .map(From::from)
-                            .unwrap_or(device::LampValue::zero()),
+                            .unwrap_or(device::HIDLampValue::zero()),
                     },
                 ))
                 .map_err(From::from),

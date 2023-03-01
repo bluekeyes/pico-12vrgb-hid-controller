@@ -93,7 +93,7 @@ pub struct LampArrayMultiUpdateReport {
     pub flags: LampArrayUpdateFlags,
     pub count: u8,
     pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
-    pub colors: [LampValue; LampArrayMultiUpdateReport::MAX_COUNT],
+    pub colors: [HIDLampValue; LampArrayMultiUpdateReport::MAX_COUNT],
 }
 
 impl LampArrayMultiUpdateReport {
@@ -105,7 +105,7 @@ pub struct LampArrayRangeUpdateReport {
     pub flags: LampArrayUpdateFlags,
     pub lamp_id_start: u8,
     pub lamp_id_end: u8,
-    pub color: LampValue,
+    pub color: HIDLampValue,
 }
 
 #[derive(Debug)]
@@ -207,8 +207,8 @@ impl Animation {
 
 #[derive(Debug)]
 pub struct BreatheAnimationData {
-    pub on_color: RGB,
-    pub off_color: RGB,
+    pub on_color: LinearRGB,
+    pub off_color: LinearRGB,
     pub on_fade_time_ms: u16,
     pub on_time_ms: u16,
     pub off_fade_time_ms: u16,
@@ -218,7 +218,7 @@ pub struct BreatheAnimationData {
 #[derive(Debug)]
 pub struct FadeAnimationData {
     pub color_count: u8,
-    pub colors: [RGB; FadeAnimationData::MAX_COLORS],
+    pub colors: [LinearRGB; FadeAnimationData::MAX_COLORS],
     pub fade_time_ms: u16,
     pub hold_time_ms: u16,
 }
@@ -234,16 +234,16 @@ pub struct SetAnimationReport {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct LampValue {
+pub struct HIDLampValue {
     pub r: u8,
     pub g: u8,
     pub b: u8,
     pub i: u8,
 }
 
-impl LampValue {
+impl HIDLampValue {
     pub fn zero() -> Self {
-        LampValue {
+        HIDLampValue {
             r: 0,
             g: 0,
             b: 0,
@@ -252,41 +252,41 @@ impl LampValue {
     }
 }
 
-impl From<&LampValue> for [u8; 4] {
-    fn from(rgbi: &LampValue) -> Self {
+impl From<&HIDLampValue> for [u8; 4] {
+    fn from(rgbi: &HIDLampValue) -> Self {
         [rgbi.r, rgbi.g, rgbi.b, rgbi.i]
     }
 }
 
-impl From<&Color> for LampValue {
+impl From<&Color> for HIDLampValue {
     fn from(value: &Color) -> Self {
-        let (r, g, b, _) = value.to_linear_rgba_u8();
-        LampValue { r, g, b, i: 1 }
+        let [r, g, b, _] = value.to_rgba8();
+        HIDLampValue { r, g, b, i: 1 }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct RGB {
+pub struct LinearRGB {
     pub r: u8,
     pub g: u8,
     pub b: u8,
 }
 
-impl RGB {
+impl LinearRGB {
     pub fn zero() -> Self {
-        RGB { r: 0, g: 0, b: 0 }
+        LinearRGB { r: 0, g: 0, b: 0 }
     }
 }
 
-impl From<&RGB> for [u8; 3] {
-    fn from(rgb: &RGB) -> Self {
+impl From<&LinearRGB> for [u8; 3] {
+    fn from(rgb: &LinearRGB) -> Self {
         [rgb.r, rgb.g, rgb.b]
     }
 }
 
-impl From<&Color> for RGB {
+impl From<&Color> for LinearRGB {
     fn from(value: &Color) -> Self {
         let (r, g, b, _) = value.to_linear_rgba_u8();
-        RGB { r, g, b }
+        LinearRGB { r, g, b }
     }
 }
