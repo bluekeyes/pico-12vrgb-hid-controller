@@ -37,15 +37,8 @@ struct AnimationFade *anim_fade_new_breathe(struct AnimationBreatheReportData *d
     }
 
     struct Labf targets[2];
-    targets[0] = rgb_to_oklab(rgbi_to_f(data->on_color));
-    if (data->off_color.r == 0 && data->off_color.g == 0 && data->off_color.b == 0) {
-        // copy the on color if the off color is not set
-        targets[1] = targets[0];
-    } else {
-        targets[1] = rgb_to_oklab(rgbi_to_f(data->off_color));
-    }
-    // lightness of off color is always 0
-    targets[1].L = 0.f;
+    targets[0] = rgb_to_oklab(rgbu8tof(data->on_color));
+    targets[1] = rgb_to_oklab(rgbu8tof(data->off_color));
     anim_fade_set_targets(fade, targets, 2);
 
     anim_fade_set_fade_time_us(fade, 0, ms_to_us(data->on_fade_time_ms));

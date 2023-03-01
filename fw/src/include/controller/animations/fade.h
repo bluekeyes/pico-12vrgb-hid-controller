@@ -43,9 +43,7 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
 
 struct __attribute__ ((packed)) AnimationBreatheReportData {
     /**
-     * The colors to cycle between. The "on" color is required. The "off"
-     * color, if set, is modified to have 0 lightness. If the "off" color is
-     * unset (all colors 0), it is set to the "on" color.
+     * The colors to cycle between. The off_color is usually (0, 0, 0).
      */
     struct RGBu8 on_color;
     struct RGBu8 off_color;

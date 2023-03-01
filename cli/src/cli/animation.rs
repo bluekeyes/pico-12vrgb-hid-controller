@@ -10,17 +10,17 @@ pub enum Animation {
     /// Turn off animation on a channel
     None(SharedArgs),
 
-    /// Fade a color on and off
+    /// Fade a color on and off or fade between two colors.
     ///
-    /// The "breathe" animation cycles between two colors, the first at its full luminance and the
-    /// second at zero luminance. The light intesity changes in four stages:
+    /// The "breathe" animation cycles between two colors. The first is usually full lightness and
+    /// the second is usually black. The color changes in four stages:
     ///
     ///
     ///        | A | B | C | D |
-    ///        |   |___|   |   |
-    ///  light |  /|   |\  |   |
+    ///     on |   |___|   |   |
+    ///        |  /|   |\  |   |
     ///        | / |   | \ |   |
-    ///        |/  |   |  \|___|
+    ///    off |/  |   |  \|___|
     ///              time
     ///
     ///   A: On Fade
@@ -30,8 +30,7 @@ pub enum Animation {
     ///
     /// Each phase can last up to 65 seconds, for a total cycle time of around 4 minutes.
     ///
-    /// The second color is optional. If not set, the animation uses the primary color with the
-    /// luminance set to zero.
+    /// The second color is optional. If not set, the animation fades to black (off).
     #[command(verbatim_doc_comment)]
     Breathe(BreatheArgs),
 
@@ -58,7 +57,12 @@ impl Animation {
                 const DEFAULT_OFF_TIME: Time = Time(1000);
 
                 let on_color = &args.on_color;
-                let off_color = args.off_color.as_ref().unwrap_or(on_color);
+                let off_color = args.off_color.as_ref().unwrap_or(&Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.0,
+                    a: 1.0,
+                });
 
                 dev.send_report(Report::SetAnimation(
                     args.shared.mode(),
@@ -131,7 +135,7 @@ pub struct BreatheArgs {
     #[arg(value_parser = csscolorparser::parse)]
     pub on_color: Color,
 
-    /// The off color for the animation. If unset, use the same color as in the "on" state.
+    /// The off color for the animation. If unset, use black.
     ///
     /// Colors are specified as CSS color strings. The alpha channel is ignored.
     #[arg(long)]
