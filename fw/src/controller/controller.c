@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hardware/timer.h"
 #include "hardware/sync.h"
+#include "pico/time.h"
 
 #include "controller/animations/fade.h"
 #include "controller/controller.h"
@@ -14,7 +14,6 @@
 
 static struct AnimationState get_initial_animation_state(void *);
 static void ctrl_animation_frame(controller_t *, uint8_t);
-static uint32_t get_elapsed(uint32_t now, uint32_t last);
 
 void ctrl_init(controller_t *ctrl)
 {
@@ -29,7 +28,7 @@ void ctrl_init(controller_t *ctrl)
         ctrl->animation[i] = get_initial_animation_state(NULL);
         ctrl->frame_cb[i] = NULL;
     }
-    ctrl->last_frame_time_us = 0;
+    ctrl->last_frame = nil_time;
 }
 
 void ctrl_task(controller_t *ctrl)
@@ -38,17 +37,15 @@ void ctrl_task(controller_t *ctrl)
         return;
     }
 
-    // TODO(bkeyes): just use pico_timestamp functions for this
-    uint32_t now = time_us_32();
-
     // Update animation state
     if (ctrl->is_autonomous) {
-        uint32_t elapsed = get_elapsed(now, ctrl->last_frame_time_us);
-        if (elapsed >= ANIM_FRAME_TIME_US) {
+        absolute_time_t now = get_absolute_time();
+        int64_t elapsed_us = absolute_time_diff_us(ctrl->last_frame, now);
+        if (elapsed_us >= ANIM_FRAME_TIME_US) {
             for (uint8_t id = 0; id < LAMP_COUNT; id++) {
                 ctrl_animation_frame(ctrl, id);
             }
-            ctrl->last_frame_time_us = now;
+            ctrl->last_frame = now;
         }
     }
 
@@ -66,14 +63,6 @@ void ctrl_task(controller_t *ctrl)
         }
         ctrl->do_update = false;
     }
-}
-
-static inline uint32_t get_elapsed(uint32_t now, uint32_t last)
-{
-    if (now < last) { /* timer overflow */
-        return now + (UINT32_MAX - last) + 1;
-    }
-    return now - last;
 }
 
 void ctrl_suspend(controller_t *ctrl)

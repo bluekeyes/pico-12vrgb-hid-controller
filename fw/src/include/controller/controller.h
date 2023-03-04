@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "pico/time.h"
+
 #include "device/lamp.h"
 #include "device/specs.h"
 #include "hid/lights/report.h"
@@ -50,7 +52,7 @@ struct Controller {
 
     struct AnimationState animation[LAMP_COUNT];
     FrameCallback frame_cb[LAMP_COUNT];
-    uint32_t last_frame_time_us;
+    absolute_time_t last_frame;
 };
 
 void ctrl_init(controller_t *ctrl);

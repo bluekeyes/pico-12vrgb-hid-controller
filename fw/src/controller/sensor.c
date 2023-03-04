@@ -16,6 +16,7 @@ void ctrl_sensor_init(sensor_controller_t *ctrl)
     ctrl->reporting_state = SENSOR_REPORTING_STATE_REPORT_NO_EVENTS;
     ctrl->power_state = SENSOR_POWER_STATE_D4_POWER_OFF;
     ctrl->report_interval = INITIAL_REPORT_INTERVAL_MS;
+    ctrl->last_report = nil_time;
 }
 
 void ctrl_sensor_task(sensor_controller_t *ctrl)
