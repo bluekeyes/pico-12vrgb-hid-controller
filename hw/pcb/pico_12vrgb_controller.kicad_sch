@@ -7,8 +7,8 @@
   (title_block
     (title "Pico 12VRGB Controller")
     (date "2023-01-17")
-    (rev "0.1")
-    (company "BlueKeyes")
+    (rev "v1")
+    (company "bluekeyes")
     (comment 1 "https://github.com/bluekeyes/pico-12rgb-hid-controller")
   )
 
@@ -1897,7 +1897,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 257.81 138.43 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 2e98da08-cf45-4819-a3e1-411e2703f27a)
-    (property "Reference" "Q12" (at 262.89 137.16 0)
+    (property "Reference" "Q10" (at 262.89 137.16 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 262.89 139.7 0)
@@ -1915,7 +1915,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q12") (unit 1)
+          (reference "Q10") (unit 1)
         )
       )
     )
@@ -1924,7 +1924,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 148.59 58.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 3256f776-773f-456f-9fda-6c6db2f88e00)
-    (property "Reference" "Q1" (at 153.67 57.15 0)
+    (property "Reference" "Q3" (at 153.67 57.15 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 153.67 59.69 0)
@@ -1942,7 +1942,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q1") (unit 1)
+          (reference "Q3") (unit 1)
         )
       )
     )
@@ -1951,7 +1951,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 224.79 123.19 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 388113b1-b835-4a71-8431-973c9d9e2e83)
-    (property "Reference" "Q10" (at 229.87 121.92 0)
+    (property "Reference" "Q12" (at 229.87 121.92 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 229.87 124.46 0)
@@ -1969,7 +1969,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q10") (unit 1)
+          (reference "Q12") (unit 1)
         )
       )
     )
@@ -2212,7 +2212,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 257.81 73.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 92dc50b2-5dbe-4560-ad14-36c1d1868846)
-    (property "Reference" "Q6" (at 262.89 72.39 0)
+    (property "Reference" "Q4" (at 262.89 72.39 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 262.89 74.93 0)
@@ -2230,7 +2230,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q6") (unit 1)
+          (reference "Q4") (unit 1)
         )
       )
     )
@@ -2264,7 +2264,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 181.61 73.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ad9d3a5d-9f89-49c3-b868-c4c026726d42)
-    (property "Reference" "Q3" (at 186.69 72.39 0)
+    (property "Reference" "Q1" (at 186.69 72.39 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 186.69 74.93 0)
@@ -2282,7 +2282,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q3") (unit 1)
+          (reference "Q1") (unit 1)
         )
       )
     )
@@ -2291,7 +2291,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 148.59 123.19 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid b100bb00-6227-49b6-a956-d6d69a1ccadc)
-    (property "Reference" "Q7" (at 153.67 121.92 0)
+    (property "Reference" "Q9" (at 153.67 121.92 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 153.67 124.46 0)
@@ -2309,7 +2309,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q7") (unit 1)
+          (reference "Q9") (unit 1)
         )
       )
     )
@@ -2374,7 +2374,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 181.61 138.43 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid ba7149ae-5710-43c5-b8fd-7eef78937ef9)
-    (property "Reference" "Q9" (at 186.69 137.16 0)
+    (property "Reference" "Q7" (at 186.69 137.16 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 186.69 139.7 0)
@@ -2392,7 +2392,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q9") (unit 1)
+          (reference "Q7") (unit 1)
         )
       )
     )
@@ -2569,7 +2569,7 @@
   (symbol (lib_id "Transistor_FET:DMG2302U") (at 224.79 58.42 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid dbe7ce71-a225-4803-8e2d-5ad6136bb8e1)
-    (property "Reference" "Q4" (at 229.87 57.15 0)
+    (property "Reference" "Q6" (at 229.87 57.15 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "DMG2302U" (at 229.87 59.69 0)
@@ -2587,7 +2587,7 @@
     (instances
       (project "pico_12vrgb_controller"
         (path "/8255db78-8f4e-4d30-baf9-cb0573db968b"
-          (reference "Q4") (unit 1)
+          (reference "Q6") (unit 1)
         )
       )
     )
