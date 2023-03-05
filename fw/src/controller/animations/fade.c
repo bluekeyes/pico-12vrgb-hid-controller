@@ -36,9 +36,9 @@ struct AnimationFade *anim_fade_new_breathe(struct AnimationBreatheReportData *d
         return NULL;
     }
 
-    struct Labf targets[2];
-    targets[0] = rgb_to_oklab(rgbu8tof(data->on_color));
-    targets[1] = rgb_to_oklab(rgbu8tof(data->off_color));
+    struct Lab targets[2];
+    targets[0] = linear_rgb_to_oklab(rgb_to_linear_rgb(rgb_from_u8(data->on_color)));
+    targets[1] = linear_rgb_to_oklab(rgb_to_linear_rgb(rgb_from_u8(data->off_color)));
     anim_fade_set_targets(fade, targets, 2);
 
     anim_fade_set_fade_time_us(fade, 0, ms_to_us(data->on_fade_time_ms));
@@ -61,9 +61,9 @@ struct AnimationFade *anim_fade_new_fade(struct AnimationFadeReportData *data)
         color_count = MAX_FADE_TARGETS;
     }
 
-    struct Labf targets[MAX_FADE_TARGETS];
+    struct Lab targets[MAX_FADE_TARGETS];
     for (uint8_t i = 0; i < color_count; i++) {
-        targets[i] = rgb_to_oklab(rgbu8tof(data->colors[i]));
+        targets[i] = linear_rgb_to_oklab(rgb_to_linear_rgb(rgb_from_u8(data->colors[i])));
 
         anim_fade_set_fade_time_us(fade, i, ms_to_us(data->fade_time_ms));
         anim_fade_set_hold_time_us(fade, i, ms_to_us(data->hold_time_ms));
@@ -73,11 +73,11 @@ struct AnimationFade *anim_fade_new_fade(struct AnimationFadeReportData *data)
     return fade;
 }
 
-void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uint8_t count)
+void anim_fade_set_targets(struct AnimationFade *fade, struct Lab *targets, uint8_t count)
 {
     count = count > MAX_FADE_TARGETS ? MAX_FADE_TARGETS : count;
 
-    memcpy(fade->targets, targets, count * sizeof(struct Labf));
+    memcpy(fade->targets, targets, count * sizeof(struct Lab));
     fade->target_count = count;
     fade->current_color = targets[count - 1];
 }
@@ -112,19 +112,19 @@ static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_
     }
 }
 
-void log_fade_stage(uint8_t stage, struct Labf current_color, struct Labf target_color)
+void log_fade_stage(uint8_t stage, struct Lab current_color, struct Lab target_color)
 {
     struct RGBu16 rgb;
     printf("animate/fade: start stage %d\n", stage);
 
-    rgb = rgbftou16(oklab_to_rgb(current_color));
+    rgb = rgb_to_u16(oklab_to_linear_rgb(current_color));
     printf(
         "    current color = oklab(% .8f, % .8f, % .8f) | rgb(%5d, %5d, %5d)\n",
         current_color.L, current_color.a, current_color.b,
         rgb.r, rgb.g, rgb.b
     );
 
-    rgb = rgbftou16(oklab_to_rgb(target_color));
+    rgb = rgb_to_u16(oklab_to_linear_rgb(target_color));
     printf(
         "     target color = oklab(% .8f, % .8f, % .8f) | rgb(%5d, %5d, %5d)\n",
         target_color.L, target_color.a, target_color.b,
@@ -169,8 +169,8 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
     }
 
     if (is_dirty) {
-        struct RGBu16 rgb = rgbftou16(oklab_to_rgb(fade->current_color));
-        ctrl_update_lamp(ctrl, lamp_id, lamp_value_from_rgbu16(rgb), true);
+        struct RGB rgb = oklab_to_linear_rgb(fade->current_color);
+        ctrl_update_lamp(ctrl, lamp_id, lamp_value_from_linear_rgb(rgb), true);
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {

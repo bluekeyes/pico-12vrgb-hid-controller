@@ -10,10 +10,10 @@
 #define MAX_FADE_TARGETS 8
 
 struct AnimationFade {
-    struct Labf current_color;
+    struct Lab current_color;
 
     uint8_t target_count;
-    struct Labf targets[MAX_FADE_TARGETS];
+    struct Lab targets[MAX_FADE_TARGETS];
 
     uint32_t fade_frames[MAX_FADE_TARGETS];
     uint32_t hold_frames[MAX_FADE_TARGETS];
@@ -31,7 +31,7 @@ struct AnimationFade {
  */
 struct AnimationFade *anim_fade_new_empty();
 
-void anim_fade_set_targets(struct AnimationFade *fade, struct Labf *targets, uint8_t count);
+void anim_fade_set_targets(struct AnimationFade *fade, struct Lab *targets, uint8_t count);
 void anim_fade_set_fade_time_us(struct AnimationFade *fade, uint8_t stage, uint32_t fade_time);
 void anim_fade_set_hold_time_us(struct AnimationFade *fade, uint8_t stage, uint32_t hold_time);
 

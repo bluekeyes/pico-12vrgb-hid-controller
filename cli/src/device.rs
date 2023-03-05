@@ -207,8 +207,8 @@ impl Animation {
 
 #[derive(Debug)]
 pub struct BreatheAnimationData {
-    pub on_color: LinearRGB,
-    pub off_color: LinearRGB,
+    pub on_color: RGB,
+    pub off_color: RGB,
     pub on_fade_time_ms: u16,
     pub on_time_ms: u16,
     pub off_fade_time_ms: u16,
@@ -218,7 +218,7 @@ pub struct BreatheAnimationData {
 #[derive(Debug)]
 pub struct FadeAnimationData {
     pub color_count: u8,
-    pub colors: [LinearRGB; FadeAnimationData::MAX_COLORS],
+    pub colors: [RGB; FadeAnimationData::MAX_COLORS],
     pub fade_time_ms: u16,
     pub hold_time_ms: u16,
 }
@@ -266,27 +266,27 @@ impl From<&Color> for HIDLampValue {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct LinearRGB {
+pub struct RGB {
     pub r: u8,
     pub g: u8,
     pub b: u8,
 }
 
-impl LinearRGB {
+impl RGB {
     pub fn zero() -> Self {
-        LinearRGB { r: 0, g: 0, b: 0 }
+        RGB { r: 0, g: 0, b: 0 }
     }
 }
 
-impl From<&LinearRGB> for [u8; 3] {
-    fn from(rgb: &LinearRGB) -> Self {
+impl From<&RGB> for [u8; 3] {
+    fn from(rgb: &RGB) -> Self {
         [rgb.r, rgb.g, rgb.b]
     }
 }
 
-impl From<&Color> for LinearRGB {
+impl From<&Color> for RGB {
     fn from(value: &Color) -> Self {
-        let (r, g, b, _) = value.to_linear_rgba_u8();
-        LinearRGB { r, g, b }
+        let [r, g, b, _] = value.to_rgba8();
+        RGB { r, g, b }
     }
 }
