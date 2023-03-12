@@ -257,4 +257,9 @@
   (pad "42" smd rect (at 0 23.9 90) (size 3.5 1.7) (drill (offset -0.9 0)) (layers "F.Cu" "F.Mask") (tstamp b4a51448-8f5c-4df4-96cc-4fa8f3623d43))
   (pad "43" thru_hole oval (at 2.54 23.9) (size 1.7 1.7) (drill 1.02) (layers "*.Cu" "*.Mask") (tstamp 22a109e0-e3a0-49d9-9446-0cd726185ae4))
   (pad "43" smd rect (at 2.54 23.9 90) (size 3.5 1.7) (drill (offset -0.9 0)) (layers "F.Cu" "F.Mask") (tstamp 82770350-c3ef-4a91-bc60-01f3d15b8991))
+  (model "${KIPRJMOD}/3dmodels/raspberry_pi_pico_r3.step"
+    (offset (xyz -10.5 -25.5 0.5))
+    (scale (xyz 1 1 1))
+    (rotate (xyz -90 0 0))
+  )
 )

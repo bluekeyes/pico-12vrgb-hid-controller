@@ -451,7 +451,7 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "pico_12vrgb_controller.step",
       "vrml": ""
     },
     "page_layout_descr_file": ""
