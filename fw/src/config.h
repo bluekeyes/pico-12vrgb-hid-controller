@@ -110,7 +110,7 @@
 //
 // Range: [1, 3.3]
 // Units: Volts
-#define CFG_RGB_TEMP_SENSOR_REF_VOLTAGE 3.3f
+#define CFG_RGB_TEMP_SENSOR_REF_VOLTAGE 2.99f
 
 // A fixed value to adjust measured temperatures by to account for differences
 // between RP2040 diodes or other factors.
