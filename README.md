@@ -24,6 +24,11 @@ See each directory for more details.
 
 ## Development Status
 
-Firmware and the control program are functional and mostly complete. The
-hardware design is complete but untested and may change once I have some
-physical parts.
+Complete and verified, at least for my current needs. Only tested with Windows
+11 and the included CLI. The CLI does not yet support other platforms and I
+haven't tested the firmware with other implementations of the HID Lighting and
+Illumination spec to see if it is compliant.
+
+## License
+
+MIT
