@@ -116,6 +116,6 @@
 // between RP2040 diodes or other factors.
 //
 // Units: Degrees Celsius
-#define CFG_RGB_TEMP_SENSOR_ADJUST 0.0f
+#define CFG_RGB_TEMP_SENSOR_ADJUST -5.0f
 
 #endif
