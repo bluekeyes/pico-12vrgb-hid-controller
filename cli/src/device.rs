@@ -5,8 +5,8 @@ use std::{error, fmt, io::Write};
 #[cfg_attr(windows, path = "device/windows.rs")]
 mod backend;
 
-pub const DEFAULT_VENDOR_ID: u16 = 0xCAFE;
-pub const DEFAULT_PRODUCT_ID: u16 = 0x4100;
+pub const DEFAULT_VENDOR_ID: u16 = 0x1209;
+pub const DEFAULT_PRODUCT_ID: u16 = 0xB210;
 
 pub mod hid {
     pub mod usage_page {
