@@ -2,12 +2,12 @@ import hid
 import struct
 
 def enumerate():
-    for d in hid.enumerate(vendor_id=0xcafe, product_id=0x4100):
+    for d in hid.enumerate(vendor_id=0x1209, product_id=0xB210):
         for k, v in d.items():
             print(f'{k}: {v}')
 
 def find_device_by_usage(usage_page):
-    devices = [d for d in hid.enumerate(vendor_id=0xcafe, product_id=0x4100) if d['usage_page'] == usage_page]
+    devices = [d for d in hid.enumerate(vendor_id=0x1209, product_id=0xB210) if d['usage_page'] == usage_page]
     if len(devices) == 0:
         raise ValueError('Device not found!')
     return devices[0]
