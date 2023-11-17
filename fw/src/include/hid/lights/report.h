@@ -28,9 +28,7 @@
 #define HID_COLLECTION_LAMP_ARRAY \
     HID_USAGE_PAGE    (HID_USAGE_PAGE_LIGHTING), \
     HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ARRAY), \
-    HID_COLLECTION    (HID_COLLECTION_APPLICATION), \
-        HID_LOGICAL_MIN     (0), \
-        HID_UNIT_EXPONENT   (0)
+    HID_COLLECTION    (HID_COLLECTION_APPLICATION)
 
 // -------------------------
 // LampArrayAttributesReport
@@ -73,11 +71,11 @@ struct __attribute__ ((packed)) LampArrayAttributesReport {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
         /* LampId */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID), \
-        HID_ITEM_UINT8    (FEATURE, 1, HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT16   (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
 struct __attribute__ ((packed)) LampAttributesRequestReport {
-    uint8_t lamp_id;
+    uint16_t lamp_id;
 };
 
 // ----------------------------
@@ -89,7 +87,7 @@ struct __attribute__ ((packed)) LampAttributesRequestReport {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
         /* LampId */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID), \
-        HID_ITEM_UINT8    (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT16   (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* PositionXInMicrometers, PositionYInMicrometers, PositionZInMicrometers */ \
         /* UpdateLatencyInMicroseconds */ \
         /* LampPurposes */ \
@@ -112,18 +110,18 @@ struct __attribute__ ((packed)) LampAttributesRequestReport {
     HID_COLLECTION_END
 
 struct __attribute__ ((packed)) LampAttributesResponseReport {
-    uint8_t lamp_id;
-    int32_t position_x;
-    int32_t position_y;
-    int32_t position_z;
-    int32_t update_latency;
-    int32_t lamp_purpose;
-    uint8_t red_level_count;
-    uint8_t green_level_count;
-    uint8_t blue_level_count;
-    uint8_t intensity_level_count;
-    uint8_t is_programmable;
-    uint8_t input_binding;
+    uint16_t lamp_id;
+    int32_t  position_x;
+    int32_t  position_y;
+    int32_t  position_z;
+    int32_t  update_latency;
+    int32_t  lamp_purpose;
+    uint8_t  red_level_count;
+    uint8_t  green_level_count;
+    uint8_t  blue_level_count;
+    uint8_t  intensity_level_count;
+    uint8_t  is_programmable;
+    uint8_t  input_binding;
 };
 
 // ---------------------
@@ -136,16 +134,17 @@ struct __attribute__ ((packed)) LampAttributesResponseReport {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
         /* LampCount */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_COUNT), \
+        HID_LOGICAL_MIN   (0), \
         HID_LOGICAL_MAX   (LAMP_MULTI_UPDATE_BATCH_SIZE), \
         HID_REPORT_SIZE   (8), \
         HID_REPORT_COUNT  (1), \
-        HID_OUTPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_FEATURE       (HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* LampUpdateFlags */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS), \
-        HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8    (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* LampId Slots */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID), \
-        HID_ITEM_UINT8    (OUTPUT, LAMP_MULTI_UPDATE_BATCH_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT16   (FEATURE, LAMP_MULTI_UPDATE_BATCH_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* (Red, Green, Blue, Intensity) Slots */ \
         HID_REPEAT(LAMP_MULTI_UPDATE_BATCH_SIZE, \
             HID_USAGE       (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL), \
@@ -153,13 +152,13 @@ struct __attribute__ ((packed)) LampAttributesResponseReport {
             HID_USAGE       (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL), \
             HID_USAGE       (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL), \
         ) \
-        HID_ITEM_UINT8    (OUTPUT, 4*LAMP_MULTI_UPDATE_BATCH_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8    (FEATURE, 4*LAMP_MULTI_UPDATE_BATCH_SIZE, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
 struct __attribute__ ((packed)) LampMultiUpdateReport {
     uint8_t  lamp_count;
-    uint16_t update_flags;
-    uint8_t  lamp_ids[LAMP_MULTI_UPDATE_BATCH_SIZE];
+    uint8_t  update_flags;
+    uint16_t lamp_ids[LAMP_MULTI_UPDATE_BATCH_SIZE];
     uint8_t  rgbi_tuples[LAMP_MULTI_UPDATE_BATCH_SIZE][4];
 };
 
@@ -172,23 +171,23 @@ struct __attribute__ ((packed)) LampMultiUpdateReport {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
         /* LampUpdateFlags */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_UPDATE_FLAGS), \
-        HID_ITEM_UINT16   (OUTPUT, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8    (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* LampIdStart, LampIdEnd */ \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_START), \
         HID_USAGE         (HID_USAGE_LIGHTING_LAMP_ID_END), \
-        HID_ITEM_UINT8    (OUTPUT, 2, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT16   (FEATURE, 2, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
         /* Red, Green, Blue, Intensity */ \
         HID_USAGE         (HID_USAGE_LIGHTING_RED_UPDATE_CHANNEL), \
         HID_USAGE         (HID_USAGE_LIGHTING_GREEN_UPDATE_CHANNEL), \
         HID_USAGE         (HID_USAGE_LIGHTING_BLUE_UPDATE_CHANNEL), \
         HID_USAGE         (HID_USAGE_LIGHTING_INTENSITY_UPDATE_CHANNEL), \
-        HID_ITEM_UINT8    (OUTPUT, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_ITEM_UINT8    (FEATURE, 4, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
 struct __attribute__ ((packed)) LampRangeUpdateReport {
-    uint16_t update_flags;
-    uint8_t  lamp_id_start;
-    uint8_t  lamp_id_end;
+    uint8_t  update_flags;
+    uint16_t lamp_id_start;
+    uint16_t lamp_id_end;
     uint8_t  rgbi_tuple[4];
 };
 
@@ -202,7 +201,11 @@ struct __attribute__ ((packed)) LampRangeUpdateReport {
     HID_COLLECTION  (HID_COLLECTION_LOGICAL), \
         /* AutonomousMode */ \
         HID_USAGE         (HID_USAGE_LIGHTING_AUTONOMOUS_MODE), \
-        HID_ITEM_UINT8    (FEATURE, 1, HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
+        HID_LOGICAL_MIN   (0), \
+        HID_LOGICAL_MAX   (1), \
+        HID_REPORT_SIZE   (8), \
+        HID_REPORT_COUNT  (1), \
+        HID_FEATURE       (HID_DATA | HID_VARIABLE | HID_ABSOLUTE), \
     HID_COLLECTION_END
 
 struct __attribute__ ((packed)) LampArrayControlReport {

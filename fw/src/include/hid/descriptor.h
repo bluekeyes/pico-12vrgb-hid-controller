@@ -22,6 +22,7 @@
 
 // Adds COUNT uint8 items of TYPE to the report with FLAGS
 #define HID_ITEM_UINT8(TYPE, COUNT, FLAGS)  \
+    HID_LOGICAL_MIN     (0),                \
     HID_LOGICAL_MAX_N   (UINT8_MAX, 2),     \
     HID_REPORT_SIZE     (8),                \
     HID_REPORT_COUNT    (COUNT),            \
@@ -29,6 +30,7 @@
 
 // Adds COUNT uint16 items of TYPE to the report with FLAGS
 #define HID_ITEM_UINT16(TYPE, COUNT, FLAGS) \
+    HID_LOGICAL_MIN     (0),                \
     HID_LOGICAL_MAX_N   (UINT16_MAX, 3),    \
     HID_REPORT_SIZE     (16),               \
     HID_REPORT_COUNT    (COUNT),            \
@@ -36,6 +38,7 @@
 
 // Adds COUNT int32 items of TYPE to the report with FLAGS
 #define HID_ITEM_INT32(TYPE, COUNT, FLAGS)  \
+    HID_LOGICAL_MIN     (0),                \
     HID_LOGICAL_MAX_N   (INT32_MAX, 3),     \
     HID_REPORT_SIZE     (32),               \
     HID_REPORT_COUNT    (COUNT),            \

@@ -13,11 +13,6 @@
 #define CFG_RGB_USB_VID   0x1209
 #define CFG_RGB_USB_PID   0xB210
 
-// The number of lamps that can be updated in a single LampMultiUpdateReport
-//
-// Range: [1, 8]
-#define CFG_RGB_MULTI_UPDATE_SIZE 2
-
 // The dimensions of the bounding box that contains all lights
 //
 // Range: [0, 2^31-1]
