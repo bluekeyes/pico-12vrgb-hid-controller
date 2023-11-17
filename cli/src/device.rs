@@ -92,7 +92,7 @@ impl Report {
 pub struct LampArrayMultiUpdateReport {
     pub flags: LampArrayUpdateFlags,
     pub count: u8,
-    pub lamp_ids: [u8; LampArrayMultiUpdateReport::MAX_COUNT],
+    pub lamp_ids: [u16; LampArrayMultiUpdateReport::MAX_COUNT],
     pub colors: [HIDLampValue; LampArrayMultiUpdateReport::MAX_COUNT],
 }
 
@@ -103,8 +103,8 @@ impl LampArrayMultiUpdateReport {
 #[derive(Debug)]
 pub struct LampArrayRangeUpdateReport {
     pub flags: LampArrayUpdateFlags,
-    pub lamp_id_start: u8,
-    pub lamp_id_end: u8,
+    pub lamp_id_start: u16,
+    pub lamp_id_end: u16,
     pub color: HIDLampValue,
 }
 
@@ -113,9 +113,9 @@ pub struct LampArrayUpdateFlags {
     pub update_complete: bool,
 }
 
-impl From<&LampArrayUpdateFlags> for u16 {
+impl From<&LampArrayUpdateFlags> for u8 {
     fn from(value: &LampArrayUpdateFlags) -> Self {
-        let mut flags: u16 = 0;
+        let mut flags: u8 = 0;
         if value.update_complete {
             flags |= 1 << 0;
         }

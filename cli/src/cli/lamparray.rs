@@ -51,8 +51,14 @@ impl Command {
                     .exit();
                 }
 
-                let mut lamp_ids = [0u8; MAX_COUNT];
-                lamp_ids[0..count].copy_from_slice(&args.lamp_ids);
+                let mut lamp_ids = [0u16; MAX_COUNT];
+                lamp_ids[0..count].copy_from_slice(
+                    &args
+                        .lamp_ids
+                        .iter()
+                        .map(|id| *id as u16)
+                        .collect::<Vec<_>>(),
+                );
 
                 let mut colors = [device::HIDLampValue::zero(); MAX_COUNT];
                 colors[0..count].copy_from_slice(
@@ -82,8 +88,8 @@ impl Command {
                         flags: device::LampArrayUpdateFlags {
                             update_complete: true,
                         },
-                        lamp_id_start: args.lamp_id_start.unwrap_or(0),
-                        lamp_id_end: args.lamp_id_end.unwrap_or(Device::LAMP_COUNT - 1),
+                        lamp_id_start: args.lamp_id_start.unwrap_or(0) as u16,
+                        lamp_id_end: args.lamp_id_end.unwrap_or(Device::LAMP_COUNT - 1) as u16,
                         color: args
                             .color
                             .as_ref()
