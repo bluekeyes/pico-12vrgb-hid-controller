@@ -53,7 +53,7 @@ pub struct Device {
 }
 
 impl Device {
-    pub const LAMP_COUNT: u16 = 4;
+    pub const LAMP_COUNT: u8 = 4;
 
     pub fn open(vendor_id: u16, product_id: u16) -> Result<Device, Error> {
         backend::Device::open(vendor_id, product_id).map(|d| Device { d })

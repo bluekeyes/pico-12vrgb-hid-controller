@@ -103,12 +103,12 @@ pub struct GetTemperatureArgs {
 }
 
 /// Parses a 1-indexed lamp/channel string to 0-indexed lamp ID
-fn lamp_id_parser(value: &str) -> Result<u16, String> {
+fn lamp_id_parser(value: &str) -> Result<u8, String> {
     const RANGE: RangeInclusive<usize> = 1..=(Device::LAMP_COUNT as usize);
 
     let id: usize = value.parse().map_err(|_| "invalid lamp number")?;
     if RANGE.contains(&id) {
-        Ok((id - 1) as u16)
+        Ok((id - 1) as u8)
     } else {
         Err(format!(
             "lamp number must be in range {}-{}",
