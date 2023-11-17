@@ -68,7 +68,7 @@ def update_lamp(r, g, b, lamp_id=0):
     for c in [(r, g, b, 1)] + [(0, 0, 0, 0)] * 3:
         report.extend(struct.pack('<BBBB', *c))
 
-    write_output_report(d, report)
+    write_feature_report(d, report)
 
 
 def set_animation(lamp_id, animation_type, data, set_default=False):

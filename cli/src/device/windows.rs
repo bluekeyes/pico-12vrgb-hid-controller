@@ -60,32 +60,32 @@ impl Device {
         match report {
             Report::LampArrayMultiUpdate(report) => {
                 let d = &self.lamp_array;
-                let r = d.CreateOutputReportById(report_id)?;
+                let r = d.CreateFeatureReportById(report_id)?;
 
                 let colors: Vec<u8> = report.colors.iter().flat_map(<[u8; 4]>::from).collect();
                 ReportWriter::new(&r)?
-                    .write_byte(report.count)?
-                    .write_byte((&report.flags).into())?
-                    .write_bytes(&report.lamp_ids)?
-                    .write_bytes(&colors)?
+                    .write_u8(report.count)?
+                    .write_u8((&report.flags).into())?
+                    .write_u16s(&report.lamp_ids)?
+                    .write_u8s(&colors)?
                     .close()?;
 
-                d.SendOutputReportAsync(&r)?.get()?;
+                d.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
 
             Report::LampArrayRangeUpdate(report) => {
                 let d = &self.lamp_array;
-                let r = d.CreateOutputReportById(report_id)?;
+                let r = d.CreateFeatureReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_byte((&report.flags).into())?
+                    .write_u8((&report.flags).into())?
                     .write_u16(report.lamp_id_start)?
                     .write_u16(report.lamp_id_end)?
-                    .write_bytes(&<[u8; 4]>::from(&report.color))?
+                    .write_u8s(&<[u8; 4]>::from(&report.color))?
                     .close()?;
 
-                d.SendOutputReportAsync(&r)?.get()?;
+                d.SendFeatureReportAsync(&r)?.get()?;
                 Ok(())
             }
 
@@ -94,7 +94,7 @@ impl Device {
                 let r = d.CreateFeatureReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_byte(if report.autonomous { 1 } else { 0 })?
+                    .write_u8(if report.autonomous { 1 } else { 0 })?
                     .close()?;
 
                 d.SendFeatureReportAsync(&r)?.get()?;
@@ -106,7 +106,7 @@ impl Device {
                 let r = d.CreateFeatureReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_byte((&report).into())?
+                    .write_u8((&report).into())?
                     .close()?;
 
                 d.SendFeatureReportAsync(&r)?.get()?;
@@ -116,9 +116,9 @@ impl Device {
             Report::SetAnimation(mode, report) => {
                 let write_report = |r: &dyn HidReport| -> Result<(), Error> {
                     ReportWriter::new(r)?
-                        .write_byte(report.lamp_id)?
-                        .write_byte(report.animation.type_byte())?
-                        .write_bytes(&report.animation.data())?
+                        .write_u8(report.lamp_id)?
+                        .write_u8(report.animation.type_byte())?
+                        .write_u8s(&report.animation.data())?
                         .close()
                 };
 
@@ -254,13 +254,13 @@ impl<'a> ReportWriter<'a> {
         })
     }
 
-    fn write_byte(mut self, value: u8) -> Result<Self, Error> {
+    fn write_u8(mut self, value: u8) -> Result<Self, Error> {
         self.data.WriteByte(value)?;
         self.length += 1;
         Ok(self)
     }
 
-    fn write_bytes(mut self, value: &[u8]) -> Result<Self, Error> {
+    fn write_u8s(mut self, value: &[u8]) -> Result<Self, Error> {
         self.data.WriteBytes(value)?;
         self.length += value.len() as u32;
         Ok(self)
@@ -269,6 +269,12 @@ impl<'a> ReportWriter<'a> {
     fn write_u16(mut self, value: u16) -> Result<Self, Error> {
         self.data.WriteUInt16(value)?;
         self.length += 2;
+        Ok(self)
+    }
+
+    fn write_u16s(mut self, value: &[u16]) -> Result<Self, Error> {
+        value.iter().try_for_each(|v| self.data.WriteUInt16(*v))?;
+        self.length += 2*value.len() as u32;
         Ok(self)
     }
 
