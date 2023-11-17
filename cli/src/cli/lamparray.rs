@@ -51,7 +51,7 @@ impl Command {
                     .exit();
                 }
 
-                let mut lamp_ids = [0u8; MAX_COUNT];
+                let mut lamp_ids = [0u16; MAX_COUNT];
                 lamp_ids[0..count].copy_from_slice(&args.lamp_ids);
 
                 let mut colors = [device::HIDLampValue::zero(); MAX_COUNT];
@@ -109,7 +109,7 @@ pub struct UpdateArgs {
     /// match the number of colors.
     #[arg(long = "lamp", value_name = "ID")]
     #[arg(value_parser = cli::lamp_id_parser)]
-    pub lamp_ids: Vec<u8>,
+    pub lamp_ids: Vec<u16>,
 
     /// The new color of the lamp; repeat to update more than one lamp. The number of colors
     /// must match the number of lamps.
@@ -126,12 +126,12 @@ pub struct UpdateRangeArgs {
     /// The first lamp in the update range. If unset, use the first lamp on the device.
     #[arg(long = "start", value_name = "ID")]
     #[arg(value_parser = cli::lamp_id_parser)]
-    pub lamp_id_start: Option<u8>,
+    pub lamp_id_start: Option<u16>,
 
     /// The last lamp in the update range. If unset, use the last lamp on the device.
     #[arg(long = "end", value_name = "ID")]
     #[arg(value_parser = cli::lamp_id_parser)]
-    pub lamp_id_end: Option<u8>,
+    pub lamp_id_end: Option<u16>,
 
     /// The new color of the lamps. If unset, turn off the lamps in the range.
     ///

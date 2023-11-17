@@ -65,7 +65,7 @@ impl Device {
                 let colors: Vec<u8> = report.colors.iter().flat_map(<[u8; 4]>::from).collect();
                 ReportWriter::new(&r)?
                     .write_byte(report.count)?
-                    .write_u16((&report.flags).into())?
+                    .write_byte((&report.flags).into())?
                     .write_bytes(&report.lamp_ids)?
                     .write_bytes(&colors)?
                     .close()?;
@@ -79,9 +79,9 @@ impl Device {
                 let r = d.CreateOutputReportById(report_id)?;
 
                 ReportWriter::new(&r)?
-                    .write_u16((&report.flags).into())?
-                    .write_byte(report.lamp_id_start)?
-                    .write_byte(report.lamp_id_end)?
+                    .write_byte((&report.flags).into())?
+                    .write_u16(report.lamp_id_start)?
+                    .write_u16(report.lamp_id_end)?
                     .write_bytes(&<[u8; 4]>::from(&report.color))?
                     .close()?;
 
