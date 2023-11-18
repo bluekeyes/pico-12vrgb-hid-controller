@@ -8,16 +8,18 @@ clap = { version = "4.1.4", features = ["derive"] }
 csscolorparser = "0.6.2"
 
 [target.'cfg(windows)'.dependencies.windows]
-version = "0.44.0"
+version = "0.52.0"
 features = [
     "Devices_Enumeration",
     "Devices_HumanInterfaceDevice",
     "Foundation_Collections",
     "Storage",
     "Storage_Streams",
+    "UI",
     "Win32_Devices_Sensors",
     "Win32_Foundation",
     "Win32_System_Com",
     "Win32_System_Com_StructuredStorage",
+    "Win32_System_Variant",
     "Win32_UI_Shell_PropertiesSystem",
 ]

@@ -12,7 +12,6 @@ use windows::Win32::UI::Shell::PropertiesSystem::PROPERTYKEY;
 
 pub struct Device {
     vendor: HidDevice,
-    lamp_array: HidDevice,
     temp_sensor: ISensor,
 }
 
@@ -33,24 +32,13 @@ impl Device {
             product_id,
         )?;
 
-        let lamp_array_filter = HidDevice::GetDeviceSelectorVidPid(
-            hid::usage_page::LIGHTING,
-            hid::usage::LIGHTING_LAMP_ARRAY,
-            vendor_id,
-            product_id,
-        )?;
-
         let device_id = find_first_device(&vendor_filter)?.Id()?;
         let vendor = HidDevice::FromIdAsync(&device_id, FileAccessMode::ReadWrite)?.get()?;
-
-        let device_id = find_first_device(&lamp_array_filter)?.Id()?;
-        let lamp_array = HidDevice::FromIdAsync(&device_id, FileAccessMode::ReadWrite)?.get()?;
 
         let temp_sensor = find_temp_sensor(vendor_id, product_id)?;
 
         Ok(Device {
             vendor,
-            lamp_array,
             temp_sensor,
         })
     }
@@ -58,46 +46,15 @@ impl Device {
     pub fn send_report(&self, report: Report) -> Result<(), Error> {
         let report_id = report.id() as u16;
         match report {
-            Report::LampArrayMultiUpdate(report) => {
-                let d = &self.lamp_array;
-                let r = d.CreateFeatureReportById(report_id)?;
-
-                let colors: Vec<u8> = report.colors.iter().flat_map(<[u8; 4]>::from).collect();
-                ReportWriter::new(&r)?
-                    .write_u8(report.count)?
-                    .write_u8((&report.flags).into())?
-                    .write_u16s(&report.lamp_ids)?
-                    .write_u8s(&colors)?
-                    .close()?;
-
-                d.SendFeatureReportAsync(&r)?.get()?;
+            Report::LampArrayMultiUpdate(_) => {
                 Ok(())
             }
 
-            Report::LampArrayRangeUpdate(report) => {
-                let d = &self.lamp_array;
-                let r = d.CreateFeatureReportById(report_id)?;
-
-                ReportWriter::new(&r)?
-                    .write_u8((&report.flags).into())?
-                    .write_u16(report.lamp_id_start)?
-                    .write_u16(report.lamp_id_end)?
-                    .write_u8s(&<[u8; 4]>::from(&report.color))?
-                    .close()?;
-
-                d.SendFeatureReportAsync(&r)?.get()?;
+            Report::LampArrayRangeUpdate(_) => {
                 Ok(())
             }
 
-            Report::LampArrayControl(report) => {
-                let d = &self.lamp_array;
-                let r = d.CreateFeatureReportById(report_id)?;
-
-                ReportWriter::new(&r)?
-                    .write_u8(if report.autonomous { 1 } else { 0 })?
-                    .close()?;
-
-                d.SendFeatureReportAsync(&r)?.get()?;
+            Report::LampArrayControl(_) => {
                 Ok(())
             }
 
@@ -266,12 +223,14 @@ impl<'a> ReportWriter<'a> {
         Ok(self)
     }
 
+    #[allow(dead_code)]
     fn write_u16(mut self, value: u16) -> Result<Self, Error> {
         self.data.WriteUInt16(value)?;
         self.length += 2;
         Ok(self)
     }
 
+    #[allow(dead_code)]
     fn write_u16s(mut self, value: &[u16]) -> Result<Self, Error> {
         value.iter().try_for_each(|v| self.data.WriteUInt16(*v))?;
         self.length += 2*value.len() as u32;

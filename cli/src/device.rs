@@ -1,4 +1,3 @@
-use csscolorparser::Color;
 use std::{error, fmt, io::Write};
 
 #[cfg_attr(unix, path = "device/unix.rs")]
@@ -258,10 +257,16 @@ impl From<&HIDLampValue> for [u8; 4] {
     }
 }
 
-impl From<&Color> for HIDLampValue {
-    fn from(value: &Color) -> Self {
+impl From<&csscolorparser::Color> for HIDLampValue {
+    fn from(value: &csscolorparser::Color) -> Self {
         let [r, g, b, _] = value.to_rgba8();
         HIDLampValue { r, g, b, i: 1 }
+    }
+}
+
+impl From<HIDLampValue> for windows::UI::Color {
+    fn from(value: HIDLampValue) -> Self {
+        windows::UI::Color { A: 255, R: value.r, G: value.g, B: value.b}
     }
 }
 
@@ -284,8 +289,8 @@ impl From<&RGB> for [u8; 3] {
     }
 }
 
-impl From<&Color> for RGB {
-    fn from(value: &Color) -> Self {
+impl From<&csscolorparser::Color> for RGB {
+    fn from(value: &csscolorparser::Color) -> Self {
         let [r, g, b, _] = value.to_rgba8();
         RGB { r, g, b }
     }
