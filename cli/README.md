@@ -23,8 +23,8 @@ Options:
 ## Platform Support
 
 The CLI is structured to support multiple platforms, but currently only
-implements a Windows backend. I might implement other backends might be added if
-there's a need for them.
+implements a Windows backend. Other backends might be added if there's a need
+for them.
 
 ### Windows
 
@@ -44,23 +44,18 @@ repeated report items by HID usage. I think this limitation does not exist in
 the lower-level Win32 HID API, but the WinRT API is easier to use and has nicer
 Rust bindings.
 
-I wanted to use the `Windows.Devices.Lights` API to implement the `lamp-array`
-subcommand instead of sending low-level reports, but as of February 2023, I
-could not get it working. The `LampArray.FromIdAsync` function that serves as
-the entry point to the API always hangs for 5 minutes, regardless of the
-function inputs or device state. Debugging suggests it never attempts to
-communicate with the device and is stuck in a polling loop waiting for some
-internal API state to change. This issue [was reported by other people as
-well][lamp-array-hang], in that situation causing `explorer.exe` to stop
-responding until the timeout. Microsoft fixed this in **KB5017380** by moving
-the call out of the main `explorer.exe` thread, instead of by fixing the
-underlying `LampArray` API.
+Currently, all parts of the `lamp-array` subcommand exit immediately. Similar
+to sensors, once a HID device is detected as as a more specific subclass,
+Windows hides it from the generic HID APIs. The `Windows.Devices.Lights` API
+does not map one-to-one with the underlying HID messages and so isn't a direct
+replacement. It also has limitations on when apps can use this API to control
+the device (e.g. they must be in the foreground.)
 
-As a result, the "Lighting and Illumination" HID implementation is unverified
-and I don't know if it complies with the standard yet.
+The [Dynamic Lighting][] UI is a reasonable substitute for most of the
+`lamp-array` subcommmands.
 
 [windows-rs]: https://crates.io/crates/windows
-[lamp-array-hang]: https://superuser.com/questions/1642074/trying-to-figure-out-windows-10-login-delay-xperf-shows-explorer-exe-hanging-up
+[Dynamic Lighting]: https://support.microsoft.com/en-us/windows/control-your-dynamic-lighting-devices-in-windows-8e8f22e3-e820-476c-8f9d-9ffc7b6ffcd2
 
 ## Development
 
