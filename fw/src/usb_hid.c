@@ -161,7 +161,7 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
         ctrl_update_lamp(&ctrl, id, value, false);
     }
 
-    if (report->update_flags & LAMP_UPDATE_COMPLETE) {
+    if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
         ctrl_apply_lamp_updates(&ctrl);
     }
 }
@@ -316,12 +316,6 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 
     if (report_type == HID_REPORT_TYPE_OUTPUT) {
         switch (report_id) {
-        case HID_REPORT_ID_LAMP_MULTI_UPDATE:
-            set_report_lamp_multi_update(buffer, bufsize);
-            break;
-        case HID_REPORT_ID_LAMP_RANGE_UPDATE:
-            set_report_lamp_range_update(buffer, bufsize);
-            break;
         case HID_REPORT_ID_VENDOR_12VRGB_ANIMATION:
             set_report_vendor_12vrgb_animation_output(buffer, bufsize);
             break;
@@ -333,6 +327,12 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
             break;
         case HID_REPORT_ID_LAMP_ARRAY_CONTROL:
             set_report_lamp_array_control(buffer, bufsize);
+            break;
+        case HID_REPORT_ID_LAMP_MULTI_UPDATE:
+            set_report_lamp_multi_update(buffer, bufsize);
+            break;
+        case HID_REPORT_ID_LAMP_RANGE_UPDATE:
+            set_report_lamp_range_update(buffer, bufsize);
             break;
         case HID_REPORT_ID_TEMPERATURE:
             set_report_temperature_feature(buffer, bufsize);
