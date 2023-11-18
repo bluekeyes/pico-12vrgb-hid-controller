@@ -4,9 +4,11 @@ A 4-channel 12V-G-R-B controller for RGB fans and LED strips using the Raspberry
 Pi Pico and controlled via USB HID. Designed to be installed inside a PC case as
 an alternative or addition to motherboard headers.
 
-It implements the "Lighting and Illumination" (`0x59`) HID usage page, the
-"Sensors" (`0x20`) HID usage page (for a temperature sensor), and a vendor
-(`0xFF00`) HID usage page for custom controls.
+It implements the "Lighting and Illumination" (`0x59`) HID usage page, making
+it fully compatible with the [Dynamic Lighting][] feature in Windows 11.
+
+It also implements the "Sensors" (`0x20`) HID usage page (for a temperature
+sensor) and a vendor (`0xFF00`) HID usage page for custom controls.
 
 Note this does *not* support 3-pin addressable RGB LEDs, but uses the
 semi-standard 4-pin 12V-G-R-B connector, where all devices connected to a
@@ -15,6 +17,8 @@ channel show the same color.
 ![The assembled pico-12vrgb-hid-controller PCB](/img/pcb.jpg)
 
 ![The assembled PCB installed in the 3D-printed case](/img/case.jpg)
+
+[Dynamic Lighting]: https://support.microsoft.com/en-us/windows/control-your-dynamic-lighting-devices-in-windows-8e8f22e3-e820-476c-8f9d-9ffc7b6ffcd2
 
 ## Animations
 
@@ -48,9 +52,8 @@ See each directory for more details.
 
 ## Limitations
 
-The hardware is only tested with Windows 11 and the included CLI. The CLI does
-not yet support other platforms. The firmware has not been verified with other
-implementations of the HID Lighting and Illumination spec.
+The hardware is only tested on Windows 11, using both the Dynamic Lighting
+feature and the included CLI. The CLI does not support other platforms yet. 
 
 ## License
 
