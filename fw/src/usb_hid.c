@@ -242,12 +242,16 @@ static void log_hid_report(char const *func, uint8_t report_id, hid_report_type_
     switch (report_type) {
     case HID_REPORT_TYPE_INPUT:
         report_type_str = "input";
+        break;
     case HID_REPORT_TYPE_OUTPUT:
         report_type_str = "output";
+        break;
     case HID_REPORT_TYPE_FEATURE:
         report_type_str = "feature";
+        break;
     case HID_REPORT_TYPE_INVALID:
         report_type_str = "invalid";
+        break;
     }
 
     printf("USBHID %s: report_id=0x%x, report_type=%s, length=%d\n", func, report_id, report_type_str, size);
