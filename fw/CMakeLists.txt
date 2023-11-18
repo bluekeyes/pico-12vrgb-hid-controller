@@ -20,7 +20,15 @@ add_executable(pico_12vrgb_controller)
 pico_set_program_name(pico_12vrgb_controller "pico_12vrgb_controller")
 pico_set_program_version(pico_12vrgb_controller "0.1")
 
-target_compile_options(pico_12vrgb_controller PRIVATE -Werror)
+suppress_tinyusb_warnings()
+target_compile_options(pico_12vrgb_controller PRIVATE
+    -Werror
+    -Wall
+    -Wextra
+    -Wconversion
+    -Wno-unused-parameter
+    -Wno-type-limits
+)
 
 target_include_directories(pico_12vrgb_controller PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/src/include
@@ -57,5 +65,5 @@ target_link_libraries(pico_12vrgb_controller
 pico_add_extra_outputs(pico_12vrgb_controller)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG_USBHID=1 DEBUG_ANIMATE=1)
+    add_compile_definitions(DEBUG_USBHID=1)
 endif()

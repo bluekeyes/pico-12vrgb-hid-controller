@@ -112,7 +112,8 @@ static void anim_fade_set_diffs(struct AnimationFade *fade, uint8_t dest, uint8_
     }
 }
 
-void log_fade_stage(uint8_t stage, struct Lab current_color, struct Lab target_color)
+#ifdef DEBUG_ANIMATE
+static void log_fade_stage(uint8_t stage, struct Lab current_color, struct Lab target_color)
 {
     struct RGBu16 rgb;
     printf("animate/fade: start stage %d\n", stage);
@@ -131,6 +132,7 @@ void log_fade_stage(uint8_t stage, struct Lab current_color, struct Lab target_c
         rgb.r, rgb.g, rgb.b
     );
 }
+#endif
 
 uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *state)
 {
@@ -158,7 +160,7 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
             log_fade_stage(state->stage, fade->current_color, fade->targets[target]);
 #endif
             // starting a new fade stage, initialize fade diffs
-            anim_fade_set_diffs(fade, target, target == 0 ? fade->target_count - 1 : (target - 1));
+            anim_fade_set_diffs(fade, target, (uint8_t) (target == 0 ? fade->target_count - 1 : target - 1));
         }
         stage_frames = fade->fade_frames[target];
 
@@ -174,7 +176,7 @@ uint8_t anim_fade(controller_t *ctrl, uint8_t lamp_id, struct AnimationState *st
     }
 
     if (stage_frames == 0 || state->stage_frame == stage_frames - 1) {
-        return (state->stage + 1) % (2 * fade->target_count);
+        return (uint8_t) ((state->stage + 1) % (2 * fade->target_count));
     }
     return state->stage;
 }

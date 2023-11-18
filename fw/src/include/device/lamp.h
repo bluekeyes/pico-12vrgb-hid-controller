@@ -41,9 +41,9 @@ static inline struct LampValue lamp_value_from_u8_tuple(uint8_t const *rgbi)
 {
     // squaring values is a simple approximation for gamma correction
     struct LampValue value = {
-        .r = ((uint16_t) rgbi[0]) * ((uint16_t) rgbi[0]),
-        .g = ((uint16_t) rgbi[1]) * ((uint16_t) rgbi[1]),
-        .b = ((uint16_t) rgbi[2]) * ((uint16_t) rgbi[2]),
+        .r = (uint16_t) (rgbi[0] * rgbi[0]),
+        .g = (uint16_t) (rgbi[1] * rgbi[1]),
+        .b = (uint16_t) (rgbi[2] * rgbi[2]),
         .i = rgbi[3],
     };
     return value;

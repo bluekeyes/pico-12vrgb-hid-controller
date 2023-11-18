@@ -6,22 +6,22 @@
 
 static inline uint8_t channel_to_u8(float c)
 {
-    uint16_t i = 255.f * c + 0.5f;
+    uint16_t i = (uint16_t) (255.f * c + 0.5f);
     return i > 255 ? 255 : (uint8_t) i;
 }
 
 static inline uint16_t channel_to_u16(float c)
 {
-    uint32_t i = 65535.f * c + 0.5f;
+    uint32_t i = (uint32_t) (65535.f * c + 0.5f);
     return i > 65535 ? 65535 : (uint16_t) i;
 }
 
 static inline float channel_to_linear(float c)
 {
     if (c >= 0.04045) {
-        return powf((c + 0.055)/(1.055), 2.4);
+        return powf((c + 0.055f)/(1.055f), 2.4f);
     } else {
-        return c / 12.92;
+        return c / 12.92f;
     }
 }
 

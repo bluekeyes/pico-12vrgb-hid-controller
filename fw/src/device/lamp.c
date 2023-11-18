@@ -21,16 +21,16 @@ void lamp_init()
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, CFG_RGB_PWM_CLOCK_DIVIDER);
 
-    uint8_t slice_mask = 0;
+    uint32_t slice_mask = 0;
     for (uint8_t i = 0; i < LAMP_COUNT; i++) {
         for (uint8_t j = 0; j < 3; j++) {
             uint8_t pin = lamp_gpios[i][j];
             gpio_set_function(pin, GPIO_FUNC_PWM);
 
-            uint8_t slice = pwm_gpio_to_slice_num(pin);
-            if ((slice_mask & (1 << slice)) == 0) {
+            uint slice = pwm_gpio_to_slice_num(pin);
+            if ((slice_mask & (uint32_t) (1 << slice)) == 0) {
                 pwm_init(slice, &config, false);
-                slice_mask |= (1 << slice);
+                slice_mask |= (uint32_t) (1 << slice);
             }
             pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), 0);
         }

@@ -86,7 +86,7 @@ static void set_report_lamp_attributes_request(uint8_t const *buffer, uint16_t b
     }
 
     struct LampAttributesRequestReport *report = (struct LampAttributesRequestReport *) buffer;
-    ctrl_set_next_lamp_attributes_id(&ctrl, report->lamp_id);
+    ctrl_set_next_lamp_attributes_id(&ctrl, (uint8_t) report->lamp_id);
 }
 
 static inline bool is_valid_rgbi_tuple(uint8_t *rgbi)
@@ -124,7 +124,7 @@ static void set_report_lamp_multi_update(uint8_t const *buffer, uint16_t bufsize
     }
 
     for (uint8_t i = 0; i < report->lamp_count; i++) {
-        ctrl_update_lamp(&ctrl, report->lamp_ids[i], lamp_value_from_u8_tuple(report->rgbi_tuples[i]), false);
+        ctrl_update_lamp(&ctrl, (uint8_t) report->lamp_ids[i], lamp_value_from_u8_tuple(report->rgbi_tuples[i]), false);
     }
 
     if ((report->update_flags & LAMP_UPDATE_COMPLETE) != 0) {
@@ -157,7 +157,7 @@ static void set_report_lamp_range_update(uint8_t const *buffer, uint16_t bufsize
     }
 
     struct LampValue value = lamp_value_from_u8_tuple(report->rgbi_tuple);
-    for (uint8_t id = report->lamp_id_start; id <= report->lamp_id_end; id++) {
+    for (uint8_t id = (uint8_t) report->lamp_id_start; id <= report->lamp_id_end; id++) {
         ctrl_update_lamp(&ctrl, id, value, false);
     }
 
@@ -235,6 +235,7 @@ static void set_report_vendor_12vrgb_animation_feature(uint8_t const *buffer, ui
     ctrl_persist_save_report(report);
 }
 
+#ifdef DEBUG_USBHID
 static void log_hid_report(char const *func, uint8_t report_id, hid_report_type_t report_type, uint16_t size)
 {
     char *report_type_str = "unknown";
@@ -245,10 +246,13 @@ static void log_hid_report(char const *func, uint8_t report_id, hid_report_type_
         report_type_str = "output";
     case HID_REPORT_TYPE_FEATURE:
         report_type_str = "feature";
+    case HID_REPORT_TYPE_INVALID:
+        report_type_str = "invalid";
     }
 
     printf("USBHID %s: report_id=0x%x, report_type=%s, length=%d\n", func, report_id, report_type_str, size);
 }
+#endif
 
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.

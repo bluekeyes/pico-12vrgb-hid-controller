@@ -138,7 +138,7 @@ void ctrl_get_lamp_attributes(controller_t *ctrl, struct LampAttributesResponseR
     // Advance the lamp ID to allow reading attributes for all lamps in
     // sequential reports without setting a new ID each time
     uint8_t lamp_id = ctrl->next_lamp_id;
-    ctrl->next_lamp_id = (lamp_id + 1) % LAMP_COUNT;
+    ctrl->next_lamp_id = (uint8_t) ((lamp_id + 1) % LAMP_COUNT);
 
     report->lamp_id = lamp_id;
     report->position_x = lamp_positions[lamp_id][0];
