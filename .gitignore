@@ -3,3 +3,6 @@
 
 # rustc generated files
 /cli/target/
+
+# slicer output
+*.gcode
